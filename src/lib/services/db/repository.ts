@@ -8,16 +8,13 @@ import mongoose, {
   UpdateQuery,
 } from 'mongoose';
 
-export interface MixedModel<T> extends PaginateModel<T> {
-
-}
-
+export interface MixedModel<T> extends PaginateModel<T> {}
 
 export class BaseRepository<T> {
   _model: MixedModel<T>;
 
   constructor(name: string, schema: mongoose.Schema<T>) {
-    this._model = mongoose.models[name] as MixedModel<T> || mongoose.model<T>(name, schema) as MixedModel<T>;
+    this._model = mongoose.models?.[name] as MixedModel<T> || mongoose.model<T>(name, schema) as MixedModel<T>;
   }
 
   create(item: Omit<T, '_id'>) {

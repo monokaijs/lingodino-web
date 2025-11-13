@@ -3,7 +3,7 @@ declare global {
   var mongoose: any;
 }
 
-let cached = global.mongoose;
+let cached = globalThis.mongoose || global.mongoose;
 
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null, indexesCreated: false };

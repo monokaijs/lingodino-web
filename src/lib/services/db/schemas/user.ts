@@ -16,7 +16,7 @@ export const UserSchema = new mongoose.Schema<User>({
   role: {
     type: String,
     enum: Object.values(UserRole),
-    default: UserRole.Reader,
+    default: UserRole.User,
   },
   photo: String,
 });

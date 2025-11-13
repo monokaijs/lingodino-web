@@ -1,5 +1,3 @@
-import {decode} from "next-auth/jwt";
-import {cookies} from 'next/headers';
 import {redirect} from 'next/navigation';
 import {UserRole} from "@/lib/types/models/user";
 import {authDecode} from "@/lib/utils/authDecode";
