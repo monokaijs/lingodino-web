@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { dbService } from "@/lib/services/db";
 import { withApi } from "@/lib/utils/withApi";
 import jwt from "jsonwebtoken";
+import { UserRole } from "@/lib/types/models/user";
 
 interface GoogleTokenPayload {
   iss: string;
@@ -74,7 +75,7 @@ async function handler(request: NextRequest) {
       email: decoded.email,
       fullName: decoded.name || "",
       photo: decoded.picture || "",
-      role: "user",
+      role: UserRole.User,
     });
   }
 

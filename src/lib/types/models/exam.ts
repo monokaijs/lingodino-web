@@ -4,7 +4,7 @@ export interface Exam {
   _id: string;
   name: string;
   description: string;
-  courseId: string;
+  lessonId: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -17,33 +17,23 @@ export enum ExamQuestionType {
   ListenAndRepeat = 'listen_and_repeat',
   ListenAndAnswer = 'listen_and_answer',
   ListenAndWrite = 'listen_and_write',
-  ListenAndChoose = 'listen_and_choose',
-  ListenAndOrder = 'listen_and_order',
+  ListenAndChoose = 'listen_and_choose'
+}
+
+export interface ExamQuestionOption {
+  text: string;
+  file?: Attachment;
+  isCorrect?: boolean;
 }
 
 export interface ExamQuestion {
   _id: string;
   examId: string;
   type: ExamQuestionType;
-  file?: Attachment[];
+  file?: Attachment;
   question: string;
-  options?: string[];
+  options?: ExamQuestionOption[];
   answer: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-
-export type ExamQuestionResponse = ExamQuestion & {
-  options: ExamQuestionOption[];
-  answer: string;
-}
-
-export interface ExamQuestionOption {
-  _id: string;
-  examQuestionId: string;
-  file?: string;
-  option: string;
-  isCorrect: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }

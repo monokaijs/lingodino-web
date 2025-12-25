@@ -29,7 +29,5 @@ export const UserSchema = new mongoose.Schema<User>({
 
 UserSchema.index({role: 1});
 UserSchema.index({createdAt: -1});
-UserSchema.index({googleId: 1});
-UserSchema.index({appleId: 1});
 
 UserSchema.plugin(mongoosePaginate);
