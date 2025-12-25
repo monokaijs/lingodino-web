@@ -58,11 +58,6 @@ const data = {
       icon: IconClipboardList,
     },
     {
-      title: "Questions",
-      url: "/dashboard/questions",
-      icon: IconQuestionMark,
-    },
-    {
       title: "Users",
       url: "/dashboard/users",
       icon: IconUsers,
