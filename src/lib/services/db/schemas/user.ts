@@ -4,14 +4,10 @@ import {User, UserRole} from "@/lib/types/models/user";
 
 export const UserSchema = new mongoose.Schema<User>({
   fullName: String,
-  username: {
+  email: {
     type: String,
     unique: true,
-  },
-  password: {
-    type: String,
-    select: false,
-    required: false,
+    sparse: true,
   },
   role: {
     type: String,
@@ -19,9 +15,21 @@ export const UserSchema = new mongoose.Schema<User>({
     default: UserRole.User,
   },
   photo: String,
+  googleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  appleId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
 });
 
 UserSchema.index({role: 1});
 UserSchema.index({createdAt: -1});
+UserSchema.index({googleId: 1});
+UserSchema.index({appleId: 1});
 
 UserSchema.plugin(mongoosePaginate);

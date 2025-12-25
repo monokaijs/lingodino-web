@@ -1,55 +1,61 @@
 import NextAuth, {NextAuthOptions} from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import AppleProvider from "next-auth/providers/apple";
 import {dbService} from "@/lib/services/db";
-import bcrypt from "bcryptjs";
+import {UserRole} from "@/lib/types/models/user";
 
 export const authOptions: NextAuthOptions = {
   providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        username: {label: "Username", type: "text"},
-        password: {label: "Password", type: "password"},
-      },
-      async authorize(credentials) {
-        if (!credentials?.username || !credentials?.password) {
-          return null;
-        }
-
-        await dbService.connect();
-
-        const user = await dbService.user.findOne(
-          {username: credentials.username},
-          {password: 1, username: 1, fullName: 1, role: 1, photo: 1}
-        );
-
-        if (!user || !user.password) {
-          return null;
-        }
-
-        const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isPasswordValid) {
-          return null;
-        }
-
-        return {
-          id: user._id.toString(),
-          name: user.fullName,
-          email: user.username,
-          role: user.role,
-          photo: user.photo,
-        };
-      },
+    GoogleProvider({
+      clientId: process.env.GOOGLE_OAUTH_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_OAUTH_CLIENT_SECRET || "",
+    }),
+    AppleProvider({
+      clientId: process.env.APPLE_OAUTH_CLIENT_ID || "",
+      clientSecret: process.env.APPLE_OAUTH_CLIENT_SECRET || "",
     }),
   ],
   callbacks: {
-    async jwt({token, user}) {
+    async signIn({user, account, profile}) {
+      if (!account) return false;
+
+      await dbService.connect();
+
+      if (account.provider === "google") {
+        let dbUser = await dbService.user.findOne({googleId: account.providerAccountId});
+        if (!dbUser) {
+          dbUser = await dbService.user.create({
+            googleId: account.providerAccountId,
+            email: user.email || "",
+            fullName: user.name || "",
+            photo: user.image || "",
+            role: UserRole.User,
+          });
+        }
+        (user as any).dbId = dbUser._id.toString();
+        (user as any).role = dbUser.role;
+      } else if (account.provider === "apple") {
+        let dbUser = await dbService.user.findOne({appleId: account.providerAccountId});
+        if (!dbUser) {
+          dbUser = await dbService.user.create({
+            appleId: account.providerAccountId,
+            email: user.email || "",
+            fullName: user.name || "",
+            role: UserRole.User,
+          });
+        }
+        (user as any).dbId = dbUser._id.toString();
+        (user as any).role = dbUser.role;
+      }
+
+      return true;
+    },
+    async jwt({token, user, account}) {
       if (user) {
-        token.id = user.id;
-        token.role = (user as any).role;
+        token.id = (user as any).dbId || user.id;
+        token.role = (user as any).role || UserRole.User;
         token.fullName = user.name || "";
-        token.photo = (user as any).photo || "";
+        token.photo = user.image || "";
       }
       return token;
     },

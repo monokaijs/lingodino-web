@@ -5,10 +5,10 @@ export enum UserRole {
 
 export interface User {
   _id: string;
+  email: string;
   fullName: string;
-  username: string;
-  password?: string;
-  phoneNumber?: string;
   role: UserRole;
   photo?: string;
+  googleId?: string;
+  appleId?: string;
 }

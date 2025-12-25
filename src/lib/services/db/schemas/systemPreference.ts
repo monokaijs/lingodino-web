@@ -11,14 +11,6 @@ export const SystemPreferenceSchema = new mongoose.Schema<SystemPreference>({
     required: true,
     default: false,
   },
-  googleOAuthClientId: {
-    type: String,
-    required: false,
-  },
-  googleOAuthClientSecret: {
-    type: String,
-    required: false,
-  },
 }, {
   timestamps: true,
 });
