@@ -52,7 +52,8 @@ async function postHandler(request: NextRequest) {
     throw error;
   }
 
-  if (!body.answer) {
+  const typesWithoutAnswer = [ExamQuestionType.LongAnswer, ExamQuestionType.MultipleChoice, ExamQuestionType.ListenAndChoose];
+  if (!typesWithoutAnswer.includes(body.type) && !body.answer) {
     const error = new Error('Answer is required');
     (error as any).code = 400;
     throw error;
@@ -70,7 +71,7 @@ async function postHandler(request: NextRequest) {
     type: body.type,
     question: body.question,
     options: body.options || [],
-    answer: body.answer,
+    answer: body.answer || "",
     ...(body.file ? {file: body.file} : {}),
   });
 

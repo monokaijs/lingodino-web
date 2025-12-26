@@ -47,7 +47,7 @@ const questionSchema = z.object({
 
 type QuestionFormData = z.infer<typeof questionSchema>;
 
-const questionTypeLabels: Record<ExamQuestionType, string> = {
+export const questionTypeLabels: Record<ExamQuestionType, string> = {
   [ExamQuestionType.MultipleChoice]: "Multiple Choice",
   [ExamQuestionType.TrueFalse]: "True / False",
   [ExamQuestionType.ShortAnswer]: "Short Answer",
@@ -58,7 +58,11 @@ const questionTypeLabels: Record<ExamQuestionType, string> = {
   [ExamQuestionType.ListenAndChoose]: "Listen and Choose",
 };
 
-const typesWithoutAnswer = [ExamQuestionType.LongAnswer];
+const typesWithoutAnswer = [
+  ExamQuestionType.LongAnswer,
+  ExamQuestionType.MultipleChoice,
+  ExamQuestionType.ListenAndChoose,
+];
 
 interface QuestionDialogProps {
   open: boolean;

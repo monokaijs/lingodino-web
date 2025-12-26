@@ -30,7 +30,7 @@ export const ExamQuestionSchema = new mongoose.Schema<ExamQuestion>({
   type: {type: String, enum: Object.values(ExamQuestionType), required: true},
   question: {type: String, required: true},
   options: [OptionSubSchema],
-  answer: {type: String, required: true},
+  answer: String,
   file: AttachmentSubSchema,
 }, {timestamps: true});
 
