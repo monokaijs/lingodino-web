@@ -20,6 +20,12 @@ export enum ExamQuestionType {
   ListenAndChoose = 'listen_and_choose'
 }
 
+export const ExamQuestionTypeManualAnswer = [
+  ExamQuestionType.ShortAnswer,
+  ExamQuestionType.LongAnswer,
+  ExamQuestionType.ListenAndWrite,
+]
+
 export interface ExamQuestionOption {
   text: string;
   file?: Attachment;

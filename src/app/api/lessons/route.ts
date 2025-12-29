@@ -3,7 +3,7 @@ import {withApi} from '@/lib/utils/withApi';
 import {dbService} from '@/lib/services/db';
 import {UserRole} from '@/lib/types/models/user';
 
-async function getHandler(request: NextRequest) {
+export const GET = withApi(async (request: NextRequest) => {
   const {searchParams} = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '10');
@@ -28,9 +28,9 @@ async function getHandler(request: NextRequest) {
     data: result.docs,
     pagination: result,
   };
-}
+});
 
-async function postHandler(request: NextRequest) {
+export const POST = withApi(async (request: NextRequest) => {
   const body = await request.json();
 
   if (!body.name) {
@@ -51,19 +51,12 @@ async function postHandler(request: NextRequest) {
     (error as any).code = 404;
     throw error;
   }
-
-  const lessonCount = await dbService.lesson.count({courseId: body.courseId});
-
-  const lesson = await dbService.lesson.create({
+  
+  return await dbService.lesson.create({
     name: body.name,
     description: body.description || '',
     courseId: body.courseId,
-    order: body.order ?? lessonCount,
+    order: Date.now(),
   });
-
-  return lesson;
-}
-
-export const GET = withApi(getHandler);
-export const POST = withApi(postHandler, {protected: true, roles: [UserRole.Admin]});
+}, {protected: true, roles: [UserRole.Admin]});
 

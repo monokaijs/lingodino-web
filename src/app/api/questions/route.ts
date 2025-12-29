@@ -2,9 +2,9 @@ import {NextRequest} from 'next/server';
 import {withApi} from '@/lib/utils/withApi';
 import {dbService} from '@/lib/services/db';
 import {UserRole} from '@/lib/types/models/user';
-import {ExamQuestionType} from '@/lib/types/models/exam';
+import {ExamQuestionType, ExamQuestionTypeManualAnswer} from '@/lib/types/models/exam';
 
-async function getHandler(request: NextRequest) {
+export const GET = withApi(async (request: NextRequest) => {
   const {searchParams} = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('limit') || '10');
@@ -29,9 +29,9 @@ async function getHandler(request: NextRequest) {
     data: result.docs,
     pagination: result,
   };
-}
+});
 
-async function postHandler(request: NextRequest) {
+export const POST = withApi(async (request: NextRequest) => {
   const body = await request.json();
 
   if (!body.question) {
@@ -52,8 +52,7 @@ async function postHandler(request: NextRequest) {
     throw error;
   }
 
-  const typesWithoutAnswer = [ExamQuestionType.LongAnswer, ExamQuestionType.MultipleChoice, ExamQuestionType.ListenAndChoose];
-  if (!typesWithoutAnswer.includes(body.type) && !body.answer) {
+  if (!body.answer && ExamQuestionTypeManualAnswer.includes(body.type)) {
     const error = new Error('Answer is required');
     (error as any).code = 400;
     throw error;
@@ -66,18 +65,13 @@ async function postHandler(request: NextRequest) {
     throw error;
   }
 
-  const question = await dbService.examQuestion.create({
+  return await dbService.examQuestion.create({
     examId: body.examId,
     type: body.type,
     question: body.question,
     options: body.options || [],
-    answer: body.answer || "",
+    answer: body.answer,
     ...(body.file ? {file: body.file} : {}),
   });
-
-  return question;
-}
-
-export const GET = withApi(getHandler);
-export const POST = withApi(postHandler, {protected: true, roles: [UserRole.Admin]});
+}, {protected: true, roles: [UserRole.Admin]});
 

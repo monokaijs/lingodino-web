@@ -1,22 +1,21 @@
 "use client";
 
-import {useForm} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {z} from "zod";
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
-import {Textarea} from "@/components/ui/textarea";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from "@/components/ui/dialog";
-import {useMutation, useQueryClient} from "@tanstack/react-query";
-import {toast} from "sonner";
-import {Lesson} from "@/lib/types/models/lesson";
-import {useEffect} from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { Lesson } from "@/lib/types/models/lesson";
+import { useEffect } from "react";
 
 const lessonSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  order: z.number().min(0, "Order must be 0 or greater"),
 });
 
 type LessonFormData = z.infer<typeof lessonSchema>;
@@ -31,8 +30,8 @@ interface LessonDialogProps {
 async function createLesson(courseId: string, data: LessonFormData): Promise<Lesson> {
   const res = await fetch("/api/lessons", {
     method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({...data, courseId}),
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ...data, courseId }),
   });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
@@ -42,7 +41,7 @@ async function createLesson(courseId: string, data: LessonFormData): Promise<Les
 async function updateLesson(id: string, data: LessonFormData): Promise<Lesson> {
   const res = await fetch(`/api/lessons/${id}`, {
     method: "PUT",
-    headers: {"Content-Type": "application/json"},
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -50,7 +49,7 @@ async function updateLesson(id: string, data: LessonFormData): Promise<Lesson> {
   return json.data;
 }
 
-export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialogProps) {
+export function LessonDialog({ open, onOpenChange, courseId, lesson }: LessonDialogProps) {
   const queryClient = useQueryClient();
   const isEditing = !!lesson;
 
@@ -59,7 +58,6 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
     defaultValues: {
       name: "",
       description: "",
-      order: 0,
     },
   });
 
@@ -68,10 +66,9 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
       form.reset({
         name: lesson.name,
         description: lesson.description || "",
-        order: lesson.order || 0,
       });
     } else {
-      form.reset({name: "", description: "", order: 0});
+      form.reset({ name: "", description: "" });
     }
   }, [lesson, form]);
 
@@ -79,7 +76,7 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
     mutationFn: (data: LessonFormData) =>
       isEditing ? updateLesson(lesson._id, data) : createLesson(courseId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ["lessons", courseId]});
+      queryClient.invalidateQueries({ queryKey: ["lessons", courseId] });
       toast.success(isEditing ? "Lesson updated" : "Lesson created");
       onOpenChange(false);
     },
@@ -99,7 +96,7 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
             <FormField
               control={form.control}
               name="name"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Name</FormLabel>
                   <FormControl>
@@ -112,7 +109,7 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
             <FormField
               control={form.control}
               name="description"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
@@ -122,19 +119,7 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="order"
-              render={({field}) => (
-                <FormItem>
-                  <FormLabel>Order</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="0" {...field} onChange={(e) => field.onChange(parseInt(e.target.value) || 0)} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel

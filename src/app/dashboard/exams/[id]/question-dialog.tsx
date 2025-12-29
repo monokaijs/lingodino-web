@@ -27,7 +27,7 @@ const optionSchema = z.object({
 const typesWithOptionsSet = new Set([ExamQuestionType.MultipleChoice, ExamQuestionType.ListenAndChoose]);
 
 const questionSchema = z.object({
-  type: z.nativeEnum(ExamQuestionType),
+  type: z.enum(ExamQuestionType),
   question: z.string().min(1, "Question is required"),
   answer: z.string().optional(),
   options: z.array(optionSchema).optional(),
