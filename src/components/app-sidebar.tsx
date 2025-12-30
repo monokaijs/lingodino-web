@@ -12,6 +12,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconVocabulary,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -56,6 +57,11 @@ const data = {
       title: "Exams",
       url: "/dashboard/exams",
       icon: IconClipboardList,
+    },
+    {
+      title: "Vocabulary",
+      url: "/dashboard/vocabulary-collections",
+      icon: IconVocabulary,
     },
     {
       title: "Users",
