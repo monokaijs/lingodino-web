@@ -4,6 +4,7 @@ export * from './course';
 export * from './lesson';
 export * from './exam';
 export * from './vocabulary-collection';
+export * from './grammar';
 
 export enum Schemas {
   User = 'User',
@@ -14,4 +15,7 @@ export enum Schemas {
   ExamQuestion = 'ExamQuestion',
   VocabularyCollection = 'VocabularyCollection',
   VocabularyItem = 'VocabularyItem',
+  GrammarCollection = 'GrammarCollection',
+  GrammarItem = 'GrammarItem',
 }
+

@@ -13,6 +13,7 @@ import {
   IconSettings,
   IconUsers,
   IconVocabulary,
+  IconLanguage,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -62,6 +63,11 @@ const data = {
       title: "Vocabulary",
       url: "/dashboard/vocabulary-collections",
       icon: IconVocabulary,
+    },
+    {
+      title: "Grammar",
+      url: "/dashboard/grammar-collections",
+      icon: IconLanguage,
     },
     {
       title: "Users",

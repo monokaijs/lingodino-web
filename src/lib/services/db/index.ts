@@ -13,6 +13,8 @@ import { Exam, ExamQuestion } from "@/lib/types/models/exam";
 import { ExamSchema, ExamQuestionSchema } from "@/lib/services/db/schemas/exam";
 import { VocabularyCollection, VocabularyItem } from "@/lib/types/models/vocabulary-collection";
 import { VocabularyCollectionSchema, VocabularyItemSchema } from "@/lib/services/db/schemas/vocabulary-collection";
+import { GrammarCollection, GrammarItem } from "@/lib/types/models/grammar";
+import { GrammarCollectionSchema, GrammarItemSchema } from "@/lib/services/db/schemas/grammar";
 
 
 class DBService {
@@ -24,6 +26,8 @@ class DBService {
   examQuestion: BaseRepository<ExamQuestion>;
   vocabularyCollection: BaseRepository<VocabularyCollection>;
   vocabularyItem: BaseRepository<VocabularyItem>;
+  grammarCollection: BaseRepository<GrammarCollection>;
+  grammarItem: BaseRepository<GrammarItem>;
 
   constructor() {
     this.user = new BaseRepository<User>(Schemas.User, UserSchema);
@@ -34,6 +38,8 @@ class DBService {
     this.examQuestion = new BaseRepository<ExamQuestion>(Schemas.ExamQuestion, ExamQuestionSchema);
     this.vocabularyCollection = new BaseRepository<VocabularyCollection>(Schemas.VocabularyCollection, VocabularyCollectionSchema);
     this.vocabularyItem = new BaseRepository<VocabularyItem>(Schemas.VocabularyItem, VocabularyItemSchema);
+    this.grammarCollection = new BaseRepository<GrammarCollection>(Schemas.GrammarCollection, GrammarCollectionSchema);
+    this.grammarItem = new BaseRepository<GrammarItem>(Schemas.GrammarItem, GrammarItemSchema);
   }
 
   connect() {
