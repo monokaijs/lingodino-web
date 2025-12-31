@@ -8,7 +8,14 @@ export interface VocabularyCollection {
     updatedAt?: Date;
 }
 
-// Completely flat structure - no nested objects
+// Example structure for vocabulary items
+export interface VocabularyExample {
+    text: string;          // The example sentence/phrase
+    meaning: string;       // Translation/meaning of the example
+    explanation: string;   // Explanation of usage context
+}
+
+// Vocabulary item structure
 export interface VocabularyItem {
     _id: string;
     collectionId: string;
@@ -20,10 +27,11 @@ export interface VocabularyItem {
     pinyinNumeric: string;
     bopomofo: string;
 
-    // Meanings and usage (simple arrays only)
+    // Meanings and usage
     meanings: string[];
     pos: string[];
     classifiers: string[];
+    examples: VocabularyExample[];
 
     // Metadata
     radical: string;

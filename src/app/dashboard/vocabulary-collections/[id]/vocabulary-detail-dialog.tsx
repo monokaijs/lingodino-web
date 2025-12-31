@@ -1,21 +1,95 @@
 "use client";
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { VocabularyItem } from "@/lib/types/models/vocabulary-collection";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { VocabularyItem, VocabularyExample } from "@/lib/types/models/vocabulary-collection";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { IconPlus, IconTrash, IconDeviceFloppy, IconBook } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils/cn";
 
 interface VocabularyDetailDialogProps {
   item: VocabularyItem | null;
+  collectionId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function VocabularyDetailDialog({ item, open, onOpenChange }: VocabularyDetailDialogProps) {
+async function updateVocabularyItem(
+  collectionId: string,
+  itemId: string,
+  data: Partial<VocabularyItem>
+): Promise<VocabularyItem> {
+  const res = await fetch(`/api/vocabulary-collections/${collectionId}/items/${itemId}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
+}
+
+export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange }: VocabularyDetailDialogProps) {
+  const queryClient = useQueryClient();
+  const [examples, setExamples] = useState<VocabularyExample[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (item) {
+      setExamples(item.examples || []);
+      setHasChanges(false);
+    }
+  }, [item]);
+
+  const updateMutation = useMutation({
+    mutationFn: (data: Partial<VocabularyItem>) =>
+      updateVocabularyItem(collectionId, item!._id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["vocabulary-items", collectionId] });
+      toast.success("Examples updated successfully");
+      setHasChanges(false);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
+  });
+
+  const handleAddExample = () => {
+    setExamples([...examples, { text: "", meaning: "", explanation: "" }]);
+    setHasChanges(true);
+  };
+
+  const handleRemoveExample = (index: number) => {
+    setExamples(examples.filter((_, i) => i !== index));
+    setHasChanges(true);
+  };
+
+  const handleExampleChange = (index: number, field: keyof VocabularyExample, value: string) => {
+    const newExamples = [...examples];
+    newExamples[index] = { ...newExamples[index], [field]: value };
+    setExamples(newExamples);
+    setHasChanges(true);
+  };
+
+  const handleSave = () => {
+    // Filter out empty examples
+    const validExamples = examples.filter(
+      (ex) => ex.text.trim() || ex.meaning.trim() || ex.explanation.trim()
+    );
+    updateMutation.mutate({ examples: validExamples });
+  };
+
   if (!item) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">Vocabulary Details</DialogTitle>
         </DialogHeader>
@@ -116,7 +190,104 @@ export function VocabularyDetailDialog({ item, open, onOpenChange }: VocabularyD
             </div>
           </div>
 
+          {/* Examples Section */}
+          <div className="space-y-4 border-t pt-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                <IconBook className="h-4 w-4" />
+                Examples
+              </h3>
+              <Button variant="outline" size="sm" onClick={handleAddExample}>
+                <IconPlus className="h-4 w-4 mr-1" />
+                Add Example
+              </Button>
+            </div>
+
+            {examples.length === 0 ? (
+              <div className="text-center py-6 border border-dashed rounded-lg">
+                <p className="text-sm text-muted-foreground">No examples yet</p>
+                <Button variant="ghost" size="sm" className="mt-2" onClick={handleAddExample}>
+                  <IconPlus className="h-4 w-4 mr-1" />
+                  Add your first example
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {examples.map((example, index) => (
+                  <div
+                    key={index}
+                    className={cn(
+                      "relative space-y-3 p-4 rounded-lg border bg-muted/30",
+                      "transition-all hover:border-primary/30"
+                    )}
+                  >
+                    <div className="absolute top-2 right-2">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleRemoveExample(index)}
+                      >
+                        <IconTrash className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2 pr-8">
+                      <Label htmlFor={`example-text-${index}`} className="text-xs text-muted-foreground">
+                        Example Sentence
+                      </Label>
+                      <Input
+                        id={`example-text-${index}`}
+                        placeholder="Enter example sentence (e.g., 你好！)"
+                        value={example.text}
+                        onChange={(e) => handleExampleChange(index, "text", e.target.value)}
+                        className="text-lg"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`example-meaning-${index}`} className="text-xs text-muted-foreground">
+                        Meaning
+                      </Label>
+                      <Input
+                        id={`example-meaning-${index}`}
+                        placeholder="Enter meaning (e.g., Hello!)"
+                        value={example.meaning}
+                        onChange={(e) => handleExampleChange(index, "meaning", e.target.value)}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor={`example-explanation-${index}`} className="text-xs text-muted-foreground">
+                        Explanation
+                      </Label>
+                      <Textarea
+                        id={`example-explanation-${index}`}
+                        placeholder="Explain the usage or context..."
+                        value={example.explanation}
+                        onChange={(e) => handleExampleChange(index, "explanation", e.target.value)}
+                        rows={2}
+                        className="resize-none"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+          {hasChanges && (
+            <Button onClick={handleSave} disabled={updateMutation.isPending}>
+              <IconDeviceFloppy className="h-4 w-4 mr-2" />
+              {updateMutation.isPending ? "Saving..." : "Save Examples"}
+            </Button>
+          )}
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

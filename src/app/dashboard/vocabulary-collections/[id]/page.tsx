@@ -176,6 +176,7 @@ export default function CollectionDetailPage() {
 
       <VocabularyDetailDialog
         item={selectedItem}
+        collectionId={collectionId}
         open={!!selectedItem}
         onOpenChange={(open) => !open && setSelectedItem(null)}
       />

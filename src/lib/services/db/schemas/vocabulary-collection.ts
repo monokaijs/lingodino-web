@@ -24,10 +24,15 @@ export const VocabularyItemSchema = new mongoose.Schema<VocabularyItem>({
     pinyinNumeric: { type: String, default: '' },
     bopomofo: { type: String, default: '' },
 
-    // Meanings and usage (simple arrays)
+    // Meanings and usage
     meanings: [{ type: String }],
     pos: [{ type: String }],
     classifiers: [{ type: String }],
+    examples: [{
+        text: { type: String, default: '' },
+        meaning: { type: String, default: '' },
+        explanation: { type: String, default: '' },
+    }],
 
     // Metadata
     radical: { type: String, default: '' },

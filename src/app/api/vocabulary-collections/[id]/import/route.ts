@@ -81,6 +81,7 @@ async function postHandler(request: NextRequest, { params }: { params: Promise<{
             meanings: primaryForm?.meanings || [],
             pos: item.pos || [],
             classifiers: primaryForm?.classifiers || [],
+            examples: [],
 
             // Metadata
             radical: item.radical || '',
