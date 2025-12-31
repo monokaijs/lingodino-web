@@ -1,115 +1,120 @@
-"use client";
+'use client'
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { IconArrowLeft, IconDownload, IconEye } from "@tabler/icons-react";
-import Link from "next/link";
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "sonner";
-import { GrammarCollection, GrammarItem } from "@/lib/types/models/grammar";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { IconArrowLeft, IconDownload, IconEye } from '@tabler/icons-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { toast } from 'sonner'
+import { GrammarCollection, GrammarItem } from '@/lib/types/models/grammar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 
 interface ApiResponse<T> {
-  data: T;
-  pagination?: any;
-  code: number;
-  message: string;
+  data: T
+  pagination?: any
+  code: number
+  message: string
 }
 
 async function fetchCollection(id: string): Promise<GrammarCollection> {
-  const res = await fetch(`/api/grammar-collections/${id}`);
-  const json: ApiResponse<GrammarCollection> = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  const res = await fetch(`/api/grammar-collections/${id}`)
+  const json: ApiResponse<GrammarCollection> = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
 async function fetchItems(collectionId: string): Promise<GrammarItem[]> {
-  const res = await fetch(`/api/grammar-collections/${collectionId}/items?limit=100`);
-  const json: ApiResponse<GrammarItem[]> = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  const res = await fetch(`/api/grammar-collections/${collectionId}/items?limit=100`)
+  const json: ApiResponse<GrammarItem[]> = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
-async function importGrammar(id: string, payload: { url?: string; data?: any }): Promise<{ count: number; skipped: number }> {
+async function importGrammar(
+  id: string,
+  payload: { url?: string; data?: any },
+): Promise<{ count: number; skipped: number }> {
   const res = await fetch(`/api/grammar-collections/${id}/import`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
-  });
-  const json = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  })
+  const json = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
 export default function CollectionDetailPage() {
-  const params = useParams();
-  const collectionId = params.id as string;
-  const queryClient = useQueryClient();
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [importUrl, setImportUrl] = useState("");
-  const [importJson, setImportJson] = useState("");
-  const [selectedItem, setSelectedItem] = useState<GrammarItem | null>(null);
+  const params = useParams()
+  const collectionId = params.id as string
+  const queryClient = useQueryClient()
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [importUrl, setImportUrl] = useState('')
+  const [importJson, setImportJson] = useState('')
+  const [selectedItem, setSelectedItem] = useState<GrammarItem | null>(null)
 
   const { data: collection } = useQuery({
-    queryKey: ["grammar-collection", collectionId],
+    queryKey: ['grammar-collection', collectionId],
     queryFn: () => fetchCollection(collectionId),
-  });
+  })
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["grammar-items", collectionId],
+    queryKey: ['grammar-items', collectionId],
     queryFn: () => fetchItems(collectionId),
-  });
+  })
 
   const importMutation = useMutation({
     mutationFn: (payload: { url?: string; data?: any }) => importGrammar(collectionId, payload),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["grammar-collection", collectionId] });
-      queryClient.invalidateQueries({ queryKey: ["grammar-items", collectionId] });
-      toast.success(`Imported ${data.count} grammar rules${data.skipped > 0 ? ` (${data.skipped} skipped)` : ''}`);
-      setImportDialogOpen(false);
-      setImportUrl("");
-      setImportJson("");
+    onSuccess: data => {
+      queryClient.invalidateQueries({ queryKey: ['grammar-collection', collectionId] })
+      queryClient.invalidateQueries({ queryKey: ['grammar-items', collectionId] })
+      toast.success(`Imported ${data.count} grammar rules${data.skipped > 0 ? ` (${data.skipped} skipped)` : ''}`)
+      setImportDialogOpen(false)
+      setImportUrl('')
+      setImportJson('')
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message)
     },
-  });
+  })
 
   const handleImportFromUrl = () => {
     if (!importUrl.trim()) {
-      toast.error("Please enter a URL");
-      return;
+      toast.error('Please enter a URL')
+      return
     }
-    importMutation.mutate({ url: importUrl });
-  };
+    importMutation.mutate({ url: importUrl })
+  }
 
   const handleImportFromJson = () => {
     if (!importJson.trim()) {
-      toast.error("Please paste JSON data");
-      return;
+      toast.error('Please paste JSON data')
+      return
     }
     try {
-      const data = JSON.parse(importJson);
-      importMutation.mutate({ data });
+      const data = JSON.parse(importJson)
+      importMutation.mutate({ data })
     } catch {
-      toast.error("Invalid JSON format");
+      toast.error('Invalid JSON format')
     }
-  };
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/grammar-collections"><IconArrowLeft className="h-4 w-4" /></Link>
+          <Link href="/dashboard/grammar-collections">
+            <IconArrowLeft className="h-4 w-4" />
+          </Link>
         </Button>
         <div className="flex items-center gap-3 flex-1">
           {collection?.photo && (
@@ -150,10 +155,12 @@ export default function CollectionDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items?.map((item) => (
+                {items?.map(item => (
                   <TableRow key={item._id}>
                     <TableCell>
-                      <Badge variant="outline" className="font-mono">{item.code}</Badge>
+                      <Badge variant="outline" className="font-mono">
+                        {item.code}
+                      </Badge>
                     </TableCell>
                     <TableCell className="font-medium max-w-[300px] truncate">{item.name}</TableCell>
                     <TableCell className="max-w-[200px] truncate text-muted-foreground">{item.grammar}</TableCell>
@@ -178,7 +185,7 @@ export default function CollectionDetailPage() {
       </Card>
 
       {/* Grammar Detail Dialog */}
-      <Dialog open={!!selectedItem} onOpenChange={(open) => !open && setSelectedItem(null)}>
+      <Dialog open={!!selectedItem} onOpenChange={open => !open && setSelectedItem(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>{selectedItem?.name}</DialogTitle>
@@ -197,7 +204,7 @@ export default function CollectionDetailPage() {
               </div>
               <div>
                 <Label className="text-muted-foreground text-xs">Grammar Pattern</Label>
-                <p className="text-lg font-medium">{selectedItem.grammar || "-"}</p>
+                <p className="text-lg font-medium">{selectedItem.grammar || '-'}</p>
               </div>
               {selectedItem.examples && selectedItem.examples.length > 0 && (
                 <div>
@@ -236,11 +243,11 @@ export default function CollectionDetailPage() {
                   id="import-url"
                   placeholder="https://example.com/grammars.json"
                   value={importUrl}
-                  onChange={(e) => setImportUrl(e.target.value)}
+                  onChange={e => setImportUrl(e.target.value)}
                 />
               </div>
               <Button onClick={handleImportFromUrl} disabled={importMutation.isPending} className="w-full">
-                {importMutation.isPending ? "Importing..." : "Import from URL"}
+                {importMutation.isPending ? 'Importing...' : 'Import from URL'}
               </Button>
             </TabsContent>
             <TabsContent value="json" className="space-y-4 mt-4">
@@ -250,18 +257,18 @@ export default function CollectionDetailPage() {
                   id="import-json"
                   placeholder='[{"code": "G001", "name": "...", "grammar": "..."}]'
                   value={importJson}
-                  onChange={(e) => setImportJson(e.target.value)}
+                  onChange={e => setImportJson(e.target.value)}
                   rows={10}
                   className="font-mono text-sm max-h-[300px] overflow-y-auto"
                 />
               </div>
               <Button onClick={handleImportFromJson} disabled={importMutation.isPending} className="w-full">
-                {importMutation.isPending ? "Importing..." : "Import JSON"}
+                {importMutation.isPending ? 'Importing...' : 'Import JSON'}
               </Button>
             </TabsContent>
           </Tabs>
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

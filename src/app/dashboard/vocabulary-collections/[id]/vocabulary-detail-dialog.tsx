@@ -1,91 +1,88 @@
-"use client";
+'use client'
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { VocabularyItem, VocabularyExample } from "@/lib/types/models/vocabulary-collection";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { IconPlus, IconTrash, IconDeviceFloppy, IconBook } from "@tabler/icons-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { cn } from "@/lib/utils/cn";
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { VocabularyItem, VocabularyExample } from '@/lib/types/models/vocabulary-collection'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { IconPlus, IconTrash, IconDeviceFloppy, IconBook } from '@tabler/icons-react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils/cn'
 
 interface VocabularyDetailDialogProps {
-  item: VocabularyItem | null;
-  collectionId: string;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  item: VocabularyItem | null
+  collectionId: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
 async function updateVocabularyItem(
   collectionId: string,
   itemId: string,
-  data: Partial<VocabularyItem>
+  data: Partial<VocabularyItem>,
 ): Promise<VocabularyItem> {
   const res = await fetch(`/api/vocabulary-collections/${collectionId}/items/${itemId}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
-  });
-  const json = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  })
+  const json = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
 export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange }: VocabularyDetailDialogProps) {
-  const queryClient = useQueryClient();
-  const [examples, setExamples] = useState<VocabularyExample[]>([]);
-  const [hasChanges, setHasChanges] = useState(false);
+  const queryClient = useQueryClient()
+  const [examples, setExamples] = useState<VocabularyExample[]>([])
+  const [hasChanges, setHasChanges] = useState(false)
 
   useEffect(() => {
     if (item) {
-      setExamples(item.examples || []);
-      setHasChanges(false);
+      setExamples(item.examples || [])
+      setHasChanges(false)
     }
-  }, [item]);
+  }, [item])
 
   const updateMutation = useMutation({
-    mutationFn: (data: Partial<VocabularyItem>) =>
-      updateVocabularyItem(collectionId, item!._id, data),
+    mutationFn: (data: Partial<VocabularyItem>) => updateVocabularyItem(collectionId, item!._id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-items", collectionId] });
-      toast.success("Examples updated successfully");
-      setHasChanges(false);
+      queryClient.invalidateQueries({ queryKey: ['vocabulary-items', collectionId] })
+      toast.success('Examples updated successfully')
+      setHasChanges(false)
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message)
     },
-  });
+  })
 
   const handleAddExample = () => {
-    setExamples([...examples, { text: "", meaning: "", explanation: "" }]);
-    setHasChanges(true);
-  };
+    setExamples([...examples, { text: '', meaning: '', explanation: '' }])
+    setHasChanges(true)
+  }
 
   const handleRemoveExample = (index: number) => {
-    setExamples(examples.filter((_, i) => i !== index));
-    setHasChanges(true);
-  };
+    setExamples(examples.filter((_, i) => i !== index))
+    setHasChanges(true)
+  }
 
   const handleExampleChange = (index: number, field: keyof VocabularyExample, value: string) => {
-    const newExamples = [...examples];
-    newExamples[index] = { ...newExamples[index], [field]: value };
-    setExamples(newExamples);
-    setHasChanges(true);
-  };
+    const newExamples = [...examples]
+    newExamples[index] = { ...newExamples[index], [field]: value }
+    setExamples(newExamples)
+    setHasChanges(true)
+  }
 
   const handleSave = () => {
     // Filter out empty examples
-    const validExamples = examples.filter(
-      (ex) => ex.text.trim() || ex.meaning.trim() || ex.explanation.trim()
-    );
-    updateMutation.mutate({ examples: validExamples });
-  };
+    const validExamples = examples.filter(ex => ex.text.trim() || ex.meaning.trim() || ex.explanation.trim())
+    updateMutation.mutate({ examples: validExamples })
+  }
 
-  if (!item) return null;
+  if (!item) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,11 +136,11 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
               <div className="space-y-2">
                 <div className="flex justify-between border-b pb-1">
                   <span className="text-sm font-medium">Radical</span>
-                  <span className="text-sm text-foreground">{item.radical || "-"}</span>
+                  <span className="text-sm text-foreground">{item.radical || '-'}</span>
                 </div>
                 <div className="flex justify-between border-b pb-1">
                   <span className="text-sm font-medium">Frequency</span>
-                  <span className="text-sm text-foreground">{item.frequency || "-"}</span>
+                  <span className="text-sm text-foreground">{item.frequency || '-'}</span>
                 </div>
               </div>
             </div>
@@ -170,7 +167,9 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Part of Speech</h3>
               <div className="flex flex-wrap gap-2">
                 {item.pos?.map((p, i) => (
-                  <Badge key={i} variant="outline">{p}</Badge>
+                  <Badge key={i} variant="outline">
+                    {p}
+                  </Badge>
                 ))}
                 {(!item.pos || item.pos.length === 0) && (
                   <span className="text-sm text-muted-foreground italic">-</span>
@@ -181,7 +180,9 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
               <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Classifiers</h3>
               <div className="flex flex-wrap gap-2">
                 {item.classifiers?.map((c, i) => (
-                  <Badge key={i} variant="outline">{c}</Badge>
+                  <Badge key={i} variant="outline">
+                    {c}
+                  </Badge>
                 ))}
                 {(!item.classifiers || item.classifiers.length === 0) && (
                   <span className="text-sm text-muted-foreground italic">-</span>
@@ -217,8 +218,8 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
                   <div
                     key={index}
                     className={cn(
-                      "relative space-y-3 p-4 rounded-lg border bg-muted/30",
-                      "transition-all hover:border-primary/30"
+                      'relative space-y-3 p-4 rounded-lg border bg-muted/30',
+                      'transition-all hover:border-primary/30',
                     )}
                   >
                     <div className="absolute top-2 right-2">
@@ -240,7 +241,7 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
                         id={`example-text-${index}`}
                         placeholder="Enter example sentence (e.g., 你好！)"
                         value={example.text}
-                        onChange={(e) => handleExampleChange(index, "text", e.target.value)}
+                        onChange={e => handleExampleChange(index, 'text', e.target.value)}
                         className="text-lg"
                       />
                     </div>
@@ -253,7 +254,7 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
                         id={`example-meaning-${index}`}
                         placeholder="Enter meaning (e.g., Hello!)"
                         value={example.meaning}
-                        onChange={(e) => handleExampleChange(index, "meaning", e.target.value)}
+                        onChange={e => handleExampleChange(index, 'meaning', e.target.value)}
                       />
                     </div>
 
@@ -265,7 +266,7 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
                         id={`example-explanation-${index}`}
                         placeholder="Explain the usage or context..."
                         value={example.explanation}
-                        onChange={(e) => handleExampleChange(index, "explanation", e.target.value)}
+                        onChange={e => handleExampleChange(index, 'explanation', e.target.value)}
                         rows={2}
                         className="resize-none"
                       />
@@ -284,11 +285,11 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
           {hasChanges && (
             <Button onClick={handleSave} disabled={updateMutation.isPending}>
               <IconDeviceFloppy className="h-4 w-4 mr-2" />
-              {updateMutation.isPending ? "Saving..." : "Save Examples"}
+              {updateMutation.isPending ? 'Saving...' : 'Save Examples'}
             </Button>
           )}
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

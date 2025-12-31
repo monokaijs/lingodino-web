@@ -1,17 +1,9 @@
-"use client"
+'use client'
 
-import {
-  IconDotsVertical,
-  IconLogout,
-  IconUserCircle,
-} from "@tabler/icons-react"
-import {signOut} from "next-auth/react"
+import { IconDotsVertical, IconLogout, IconUserCircle } from '@tabler/icons-react'
+import { signOut } from 'next-auth/react'
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,21 +11,18 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/dropdown-menu'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 
 function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2) || "U"
+  return (
+    name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) || 'U'
+  )
 }
 
 export function NavUser({
@@ -48,7 +37,7 @@ export function NavUser({
   const { isMobile } = useSidebar()
 
   const handleLogout = () => {
-    signOut({ callbackUrl: "/login" })
+    signOut({ callbackUrl: '/login' })
   }
 
   return (
@@ -66,16 +55,14 @@ export function NavUser({
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium">{user.name}</span>
-                <span className="text-muted-foreground truncate text-xs">
-                  {user.email}
-                </span>
+                <span className="text-muted-foreground truncate text-xs">{user.email}</span>
               </div>
               <IconDotsVertical className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            side={isMobile ? "bottom" : "right"}
+            side={isMobile ? 'bottom' : 'right'}
             align="end"
             sideOffset={4}
           >
@@ -87,9 +74,7 @@ export function NavUser({
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">{user.name}</span>
-                  <span className="text-muted-foreground truncate text-xs">
-                    {user.email}
-                  </span>
+                  <span className="text-muted-foreground truncate text-xs">{user.email}</span>
                 </div>
               </div>
             </DropdownMenuLabel>

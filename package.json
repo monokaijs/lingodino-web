@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "format": "biome format --write .",
+    "lint": "biome lint .",
+    "check": "biome check --write ."
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.958.0",
@@ -14,6 +17,7 @@
     "@dnd-kit/modifiers": "^9.0.0",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@elevenlabs/elevenlabs-js": "^2.28.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-avatar": "^1.1.10",
@@ -36,6 +40,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.19",
+    "elevenlabs": "^1.59.0",
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.552.0",
     "mongoose": "^8.19.2",
@@ -54,6 +59,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.0.6",
     "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",

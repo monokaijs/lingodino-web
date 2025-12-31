@@ -1,8 +1,7 @@
-"use client";
+'use client'
 
-import {ExamForm} from "../exam-form";
+import { ExamForm } from '../exam-form'
 
 export default function NewExamPage() {
-  return <ExamForm />;
+  return <ExamForm />
 }
-

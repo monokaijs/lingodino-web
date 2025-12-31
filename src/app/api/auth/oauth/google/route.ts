@@ -1,24 +1,24 @@
-import { NextRequest } from "next/server";
-import { dbService } from "@/lib/services/db";
-import { withApi } from "@/lib/utils/withApi";
-import jwt from "jsonwebtoken";
-import { UserRole } from "@/lib/types/models/user";
+import { NextRequest } from 'next/server'
+import { dbService } from '@/lib/services/db'
+import { withApi } from '@/lib/utils/withApi'
+import jwt from 'jsonwebtoken'
+import { UserRole } from '@/lib/types/models/user'
 
 interface GoogleTokenPayload {
-  iss: string;
-  azp: string;
-  aud: string;
-  sub: string;
-  email: string;
-  email_verified: boolean;
-  at_hash: string;
-  name: string;
-  picture: string;
-  given_name: string;
-  family_name: string;
-  locale: string;
-  iat: number;
-  exp: number;
+  iss: string
+  azp: string
+  aud: string
+  sub: string
+  email: string
+  email_verified: boolean
+  at_hash: string
+  name: string
+  picture: string
+  given_name: string
+  family_name: string
+  locale: string
+  iat: number
+  exp: number
 }
 
 /**
@@ -46,37 +46,37 @@ interface GoogleTokenPayload {
  * }
  */
 async function handler(request: NextRequest) {
-  const { idToken } = await request.json();
+  const { idToken } = await request.json()
 
   if (!idToken) {
-    const error = new Error("Missing idToken");
-    (error as any).code = 400;
-    throw error;
+    const error = new Error('Missing idToken')
+    ;(error as any).code = 400
+    throw error
   }
 
   // Verify Google token (in production, verify with Google's API)
   // For now, we decode without verification - in production use google-auth-library
   // You can use GOOGLE_OAUTH_CLIENT_ID env var for verification
-  const decoded = jwt.decode(idToken) as GoogleTokenPayload | null;
+  const decoded = jwt.decode(idToken) as GoogleTokenPayload | null
 
   if (!decoded || !decoded.sub || !decoded.email) {
-    const error = new Error("Invalid token");
-    (error as any).code = 401;
-    throw error;
+    const error = new Error('Invalid token')
+    ;(error as any).code = 401
+    throw error
   }
 
   // Find or create user
-  let user = await dbService.user.findOne({ googleId: decoded.sub });
+  let user = await dbService.user.findOne({ googleId: decoded.sub })
 
   if (!user) {
     // Create new user
     user = await dbService.user.create({
       googleId: decoded.sub,
       email: decoded.email,
-      fullName: decoded.name || "",
-      photo: decoded.picture || "",
+      fullName: decoded.name || '',
+      photo: decoded.picture || '',
       role: UserRole.User,
-    });
+    })
   }
 
   // Generate system access token
@@ -88,9 +88,9 @@ async function handler(request: NextRequest) {
       role: user.role,
       photo: user.photo,
     },
-    process.env.NEXTAUTH_SECRET || "secret",
-    { expiresIn: "7d" }
-  );
+    process.env.NEXTAUTH_SECRET || 'secret',
+    { expiresIn: '7d' },
+  )
 
   return {
     accessToken,
@@ -101,8 +101,7 @@ async function handler(request: NextRequest) {
       role: user.role,
       photo: user.photo,
     },
-  };
+  }
 }
 
-export const POST = withApi(handler);
-
+export const POST = withApi(handler)

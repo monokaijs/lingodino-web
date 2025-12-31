@@ -1,7 +1,7 @@
-"use client"
+'use client'
 
-import { type Icon } from "@tabler/icons-react"
-import Link from "next/link"
+import { type Icon } from '@tabler/icons-react'
+import Link from 'next/link'
 
 import {
   SidebarGroup,
@@ -9,7 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 export function NavMain({
   items,
@@ -24,7 +24,7 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          {items.map((item) => (
+          {items.map(item => (
             <SidebarMenuItem key={item.title}>
               <SidebarMenuButton tooltip={item.title} asChild>
                 <Link href={item.url}>

@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import * as React from "react"
+import * as React from 'react'
 import {
   IconBook,
   IconBooks,
@@ -14,11 +14,12 @@ import {
   IconUsers,
   IconVocabulary,
   IconLanguage,
-} from "@tabler/icons-react"
+  IconHeadphones,
+} from '@tabler/icons-react'
 
-import { NavMain } from "@/components/nav-main"
-import { NavSecondary } from "@/components/nav-secondary"
-import { NavUser } from "@/components/nav-user"
+import { NavMain } from '@/components/nav-main'
+import { NavSecondary } from '@/components/nav-secondary'
+import { NavUser } from '@/components/nav-user'
 import {
   Sidebar,
   SidebarContent,
@@ -27,7 +28,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
+} from '@/components/ui/sidebar'
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
@@ -40,55 +41,60 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 const data = {
   navMain: [
     {
-      title: "Dashboard",
-      url: "/dashboard",
+      title: 'Dashboard',
+      url: '/dashboard',
       icon: IconDashboard,
     },
     {
-      title: "Courses",
-      url: "/dashboard/courses",
+      title: 'Courses',
+      url: '/dashboard/courses',
       icon: IconBooks,
     },
     {
-      title: "Lessons",
-      url: "/dashboard/lessons",
+      title: 'Lessons',
+      url: '/dashboard/lessons',
       icon: IconBook,
     },
     {
-      title: "Exams",
-      url: "/dashboard/exams",
+      title: 'Exams',
+      url: '/dashboard/exams',
       icon: IconClipboardList,
     },
     {
-      title: "Vocabulary",
-      url: "/dashboard/vocabulary-collections",
+      title: 'Vocabulary',
+      url: '/dashboard/vocabulary-collections',
       icon: IconVocabulary,
     },
     {
-      title: "Grammar",
-      url: "/dashboard/grammar-collections",
+      title: 'Grammar',
+      url: '/dashboard/grammar-collections',
       icon: IconLanguage,
     },
     {
-      title: "Users",
-      url: "/dashboard/users",
+      title: 'Audio Conversations',
+      url: '/dashboard/conversations',
+      icon: IconHeadphones,
+    },
+    {
+      title: 'Users',
+      url: '/dashboard/users',
       icon: IconUsers,
     },
   ],
   navSecondary: [
     {
-      title: "Settings",
-      url: "#",
+      title: 'Settings',
+      url: '#',
       icon: IconSettings,
     },
     {
-      title: "Get Help",
-      url: "#",
+      title: 'Get Help',
+      url: '#',
       icon: IconHelp,
     },
     {
-      title: "Search",
-      url: "#",
+      title: 'Search',
+      url: '#',
       icon: IconSearch,
     },
   ],
@@ -100,10 +106,7 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              className="data-[slot=sidebar-menu-button]:!p-1.5"
-            >
+            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <a href="/dashboard">
                 <IconInnerShadowTop className="!size-5" />
                 <span className="text-base font-semibold">LingoDino</span>

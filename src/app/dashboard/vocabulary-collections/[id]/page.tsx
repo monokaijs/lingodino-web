@@ -1,99 +1,101 @@
-"use client";
+'use client'
 
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { IconArrowLeft, IconDownload, IconEye } from "@tabler/icons-react";
-import Link from "next/link";
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { toast } from "sonner";
-import { VocabularyCollection, VocabularyItem } from "@/lib/types/models/vocabulary-collection";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { VocabularyDetailDialog } from "./vocabulary-detail-dialog";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Button } from '@/components/ui/button'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { IconArrowLeft, IconDownload, IconEye } from '@tabler/icons-react'
+import Link from 'next/link'
+import { useState } from 'react'
+import { useParams } from 'next/navigation'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { toast } from 'sonner'
+import { VocabularyCollection, VocabularyItem } from '@/lib/types/models/vocabulary-collection'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
+import { VocabularyDetailDialog } from './vocabulary-detail-dialog'
 
 interface ApiResponse<T> {
-  data: T;
-  pagination?: any;
-  code: number;
-  message: string;
+  data: T
+  pagination?: any
+  code: number
+  message: string
 }
 
 async function fetchCollection(id: string): Promise<VocabularyCollection> {
-  const res = await fetch(`/api/vocabulary-collections/${id}`);
-  const json: ApiResponse<VocabularyCollection> = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  const res = await fetch(`/api/vocabulary-collections/${id}`)
+  const json: ApiResponse<VocabularyCollection> = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
 async function fetchItems(collectionId: string): Promise<VocabularyItem[]> {
-  const res = await fetch(`/api/vocabulary-collections/${collectionId}/items?limit=100`);
-  const json: ApiResponse<VocabularyItem[]> = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  const res = await fetch(`/api/vocabulary-collections/${collectionId}/items?limit=100`)
+  const json: ApiResponse<VocabularyItem[]> = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
 async function importVocabulary(id: string, url: string): Promise<{ count: number }> {
   const res = await fetch(`/api/vocabulary-collections/${id}/import`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url }),
-  });
-  const json = await res.json();
-  if (json.code !== 200) throw new Error(json.message);
-  return json.data;
+  })
+  const json = await res.json()
+  if (json.code !== 200) throw new Error(json.message)
+  return json.data
 }
 
 export default function CollectionDetailPage() {
-  const params = useParams();
-  const collectionId = params.id as string;
-  const queryClient = useQueryClient();
-  const [importDialogOpen, setImportDialogOpen] = useState(false);
-  const [importUrl, setImportUrl] = useState("");
-  const [selectedItem, setSelectedItem] = useState<VocabularyItem | null>(null);
+  const params = useParams()
+  const collectionId = params.id as string
+  const queryClient = useQueryClient()
+  const [importDialogOpen, setImportDialogOpen] = useState(false)
+  const [importUrl, setImportUrl] = useState('')
+  const [selectedItem, setSelectedItem] = useState<VocabularyItem | null>(null)
 
   const { data: collection } = useQuery({
-    queryKey: ["vocabulary-collection", collectionId],
+    queryKey: ['vocabulary-collection', collectionId],
     queryFn: () => fetchCollection(collectionId),
-  });
+  })
 
   const { data: items, isLoading } = useQuery({
-    queryKey: ["vocabulary-items", collectionId],
+    queryKey: ['vocabulary-items', collectionId],
     queryFn: () => fetchItems(collectionId),
-  });
+  })
 
   const importMutation = useMutation({
     mutationFn: (url: string) => importVocabulary(collectionId, url),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-collection", collectionId] });
-      queryClient.invalidateQueries({ queryKey: ["vocabulary-items", collectionId] });
-      toast.success(`Successfully imported ${data.count} vocabulary items`);
-      setImportDialogOpen(false);
-      setImportUrl("");
+    onSuccess: data => {
+      queryClient.invalidateQueries({ queryKey: ['vocabulary-collection', collectionId] })
+      queryClient.invalidateQueries({ queryKey: ['vocabulary-items', collectionId] })
+      toast.success(`Successfully imported ${data.count} vocabulary items`)
+      setImportDialogOpen(false)
+      setImportUrl('')
     },
     onError: (error: Error) => {
-      toast.error(error.message);
+      toast.error(error.message)
     },
-  });
+  })
 
   const handleImport = () => {
     if (!importUrl.trim()) {
-      toast.error("Please enter a URL");
-      return;
+      toast.error('Please enter a URL')
+      return
     }
-    importMutation.mutate(importUrl);
-  };
+    importMutation.mutate(importUrl)
+  }
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/dashboard/vocabulary-collections"><IconArrowLeft className="h-4 w-4" /></Link>
+          <Link href="/dashboard/vocabulary-collections">
+            <IconArrowLeft className="h-4 w-4" />
+          </Link>
         </Button>
         <div className="flex items-center gap-3 flex-1">
           {collection?.photo && (
@@ -135,7 +137,7 @@ export default function CollectionDetailPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {items?.map((item) => (
+                {items?.map(item => (
                   <TableRow key={item._id}>
                     <TableCell className="font-medium text-lg">{item.simplified}</TableCell>
                     <TableCell>{item.pinyin}</TableCell>
@@ -178,7 +180,7 @@ export default function CollectionDetailPage() {
         item={selectedItem}
         collectionId={collectionId}
         open={!!selectedItem}
-        onOpenChange={(open) => !open && setSelectedItem(null)}
+        onOpenChange={open => !open && setSelectedItem(null)}
       />
 
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
@@ -193,7 +195,7 @@ export default function CollectionDetailPage() {
                 id="import-url"
                 placeholder="https://example.com/vocabulary.json"
                 value={importUrl}
-                onChange={(e) => setImportUrl(e.target.value)}
+                onChange={e => setImportUrl(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">
                 Enter a URL to a JSON file containing vocabulary data (e.g., HSK wordlists)
@@ -205,11 +207,11 @@ export default function CollectionDetailPage() {
               Cancel
             </Button>
             <Button onClick={handleImport} disabled={importMutation.isPending}>
-              {importMutation.isPending ? "Importing..." : "Import"}
+              {importMutation.isPending ? 'Importing...' : 'Import'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }
