@@ -32,6 +32,7 @@ import {
   ConversationStatus,
   ElevenLabsVoice,
 } from '@/lib/types/models/conversation'
+import { GenerateDialogueDialog } from '@/components/conversations/GenerateDialogueDialog'
 import { cn } from '@/lib/utils/cn'
 import {
   DndContext,
@@ -148,7 +149,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
       {/* Content */}
       <div className="flex-1 space-y-3">
         {/* Speaker & Text */}
-        <div className="flex items-start gap-3">
+        <div className="flex flex-col gap-3">
           <div className="shrink-0">
             <Badge
               variant={sentence.participantRole === ParticipantRole.Speaker1 ? 'default' : 'secondary'}
@@ -232,6 +233,7 @@ export default function ConversationEditorPage() {
   const [participants, setParticipants] = useState<ConversationParticipant[]>([])
   const [sentences, setSentences] = useState<DialogueSentence[]>([])
   const [hasChanges, setHasChanges] = useState(false)
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -344,6 +346,11 @@ export default function ConversationEditorPage() {
     }
   }
 
+  const handleGenerateDialogue = (newSentences: DialogueSentence[]) => {
+    setSentences(prev => [...prev, ...newSentences])
+    setHasChanges(true)
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -400,7 +407,7 @@ export default function ConversationEditorPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
         {/* Participants Panel */}
         <div className="space-y-4">
           <Card>
@@ -462,6 +469,21 @@ export default function ConversationEditorPage() {
               <CardTitle className="text-lg">Quick Add</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
+              <Button
+                className="w-full bg-indigo-600 hover:bg-indigo-700 text-white mb-2"
+                onClick={() => setIsGenerateDialogOpen(true)}
+              >
+                <IconSparkles className="h-4 w-4 mr-2" />
+                Generate with A.I
+              </Button>
+              <div className="relative my-3">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-card px-2 text-muted-foreground">Or manual</span>
+                </div>
+              </div>
               <Button
                 variant="outline"
                 className="w-full justify-start border-blue-500/30 hover:bg-blue-500/10"
@@ -527,6 +549,12 @@ export default function ConversationEditorPage() {
           </CardContent>
         </Card>
       </div>
+      <GenerateDialogueDialog
+        open={isGenerateDialogOpen}
+        onOpenChange={setIsGenerateDialogOpen}
+        participants={participants}
+        onGenerate={handleGenerateDialogue}
+      />
     </div>
   )
 }
