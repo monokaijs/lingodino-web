@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,12 +7,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {Button} from '@/components/ui/button';
-import {Label} from '@/components/ui/label';
-import {Input} from '@/components/ui/input';
-import {IconVideo, IconLoader2, IconMusic, IconPhoto} from '@tabler/icons-react';
-import {toast} from 'sonner';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { IconVideo, IconLoader2, IconMusic, IconPhoto } from '@tabler/icons-react';
+import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface GenerateVideoDialogProps {
   open: boolean;
@@ -21,7 +21,7 @@ interface GenerateVideoDialogProps {
   onSuccess: () => void;
 }
 
-export function GenerateVideoDialog({open, onOpenChange, conversationId, onSuccess}: GenerateVideoDialogProps) {
+export function GenerateVideoDialog({ open, onOpenChange, conversationId, onSuccess }: GenerateVideoDialogProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [musicFile, setMusicFile] = useState<File | null>(null);
@@ -33,7 +33,7 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!imageFile) {
-      toast.error('Please upload an image');
+      toast.error('Vui lòng tải ảnh lên');
       return;
     }
 
@@ -59,10 +59,10 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
 
       if (!response.ok) {
         const json = await response.json();
-        throw new Error(json.message || 'Failed to generate video');
+        throw new Error(json.message || 'Tạo video thất bại');
       }
 
-      toast.success('Video generated successfully!');
+      toast.success('Tạo video thành công!');
       onSuccess();
       onOpenChange(false);
     } catch (error: any) {
@@ -76,15 +76,15 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Generate Video</DialogTitle>
+          <DialogTitle>Tạo Video</DialogTitle>
           <DialogDescription>
-            Create a video from your conversation audio. Upload an image to loop and optional background music.
+            Tạo video từ âm thanh hội thoại. Tải ảnh nền và nhạc nền (tùy chọn).
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="image-upload">Background Image (Required)</Label>
+            <Label htmlFor="image-upload">Ảnh nền (Bắt buộc)</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="image-upload"
@@ -94,11 +94,11 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
                 className="cursor-pointer"
               />
             </div>
-            {imageFile && <p className="text-xs text-muted-foreground">Selected: {imageFile.name}</p>}
+            {imageFile && <p className="text-xs text-muted-foreground">Đã chọn: {imageFile.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="intro-upload">Intro Image (Optional)</Label>
+            <Label htmlFor="intro-upload">Ảnh mở đầu (Tùy chọn)</Label>
             <Input
               id="intro-upload"
               type="file"
@@ -106,11 +106,11 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
               onChange={e => setIntroImageFile(e.target.files?.[0] || null)}
               className="cursor-pointer"
             />
-            {introImageFile && <p className="text-xs text-muted-foreground">Selected: {introImageFile.name}</p>}
+            {introImageFile && <p className="text-xs text-muted-foreground">Đã chọn: {introImageFile.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="outro-upload">Outro Video (Optional)</Label>
+            <Label htmlFor="outro-upload">Video kết thúc (Tùy chọn)</Label>
             <Input
               id="outro-upload"
               type="file"
@@ -118,14 +118,14 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
               onChange={e => setOutroVideoFile(e.target.files?.[0] || null)}
               className="cursor-pointer"
             />
-            {outroVideoFile && <p className="text-xs text-muted-foreground">Selected: {outroVideoFile.name}</p>}
+            {outroVideoFile && <p className="text-xs text-muted-foreground">Đã chọn: {outroVideoFile.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label>Output Resolution</Label>
+            <Label>Độ phân giải đầu ra</Label>
             <Select value={resolution} onValueChange={setResolution}>
               <SelectTrigger>
-                <SelectValue placeholder="Select resolution" />
+                <SelectValue placeholder="Chọn độ phân giải" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="1280x720">1280x720 (Landscape HD)</SelectItem>
@@ -138,7 +138,7 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="music-upload">Background Music (Optional)</Label>
+            <Label htmlFor="music-upload">Nhạc nền (Tùy chọn)</Label>
             <div className="flex items-center gap-2">
               <Input
                 id="music-upload"
@@ -148,11 +148,11 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
                 className="cursor-pointer"
               />
             </div>
-            {musicFile && <p className="text-xs text-muted-foreground">Selected: {musicFile.name}</p>}
+            {musicFile && <p className="text-xs text-muted-foreground">Đã chọn: {musicFile.name}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="offset">Intro Duration (Seconds)</Label>
+            <Label htmlFor="offset">Thời lượng mở đầu (Giây)</Label>
             <Input
               id="offset"
               type="number"
@@ -162,23 +162,23 @@ export function GenerateVideoDialog({open, onOpenChange, conversationId, onSucce
               onChange={e => setOffset(e.target.value)}
               placeholder="2.0"
             />
-            <p className="text-xs text-muted-foreground">Intro Image will fade to video. Default 2 seconds.</p>
+            <p className="text-xs text-muted-foreground">Ảnh mở đầu sẽ chuyển sang video. Mặc định 2 giây.</p>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" disabled={isGenerating}>
               {isGenerating ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  Đang tạo...
                 </>
               ) : (
                 <>
                   <IconVideo className="mr-2 h-4 w-4" />
-                  Generate Video
+                  Tạo Video
                 </>
               )}
             </Button>

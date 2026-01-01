@@ -1,12 +1,12 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {IconEdit, IconTrash} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,10 +17,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {toast} from 'sonner';
-import {User} from '@/lib/types/models/user';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {Badge} from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { User } from '@/lib/types/models/user';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 interface ApiResponse<T> {
   data: T;
@@ -37,7 +37,7 @@ async function fetchUsers(): Promise<User[]> {
 }
 
 async function deleteUser(id: string): Promise<void> {
-  const res = await fetch(`/api/users/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/users/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -46,7 +46,7 @@ export default function UsersPage() {
   const queryClient = useQueryClient();
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const {data: users, isLoading} = useQuery({
+  const { data: users, isLoading } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
   });
@@ -54,8 +54,8 @@ export default function UsersPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['users']});
-      toast.success('User deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      toast.success('Xóa người dùng thành công');
       setDeleteId(null);
     },
     onError: (error: Error) => {
@@ -76,19 +76,19 @@ export default function UsersPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Users</CardTitle>
+          <CardTitle>Người dùng</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
+                  <TableHead>Người dùng</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>Vai trò</TableHead>
+                  <TableHead className="w-[100px]">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -124,7 +124,7 @@ export default function UsersPage() {
                 {users?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
-                      No users found
+                      Không tìm thấy người dùng nào
                     </TableCell>
                   </TableRow>
                 )}
@@ -137,14 +137,14 @@ export default function UsersPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogTitle>Xóa người dùng</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this user? This action cannot be undone.
+              Bạn có chắc chắn muốn xóa người dùng này không? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Xóa</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

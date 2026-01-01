@@ -1,12 +1,12 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {IconPlus, IconEdit, IconTrash} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,10 +17,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {toast} from 'sonner';
-import {Exam} from '@/lib/types/models/exam';
-import {Lesson} from '@/lib/types/models/lesson';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import { toast } from 'sonner';
+import { Exam } from '@/lib/types/models/exam';
+import { Lesson } from '@/lib/types/models/lesson';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface ApiResponse<T> {
   data: T;
@@ -45,7 +45,7 @@ async function fetchLessons(): Promise<Lesson[]> {
 }
 
 async function deleteExam(id: string): Promise<void> {
-  const res = await fetch(`/api/exams/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/exams/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -55,12 +55,12 @@ export default function ExamsPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [lessonFilter, setLessonFilter] = useState<string>('');
 
-  const {data: lessons} = useQuery({
+  const { data: lessons } = useQuery({
     queryKey: ['lessons'],
     queryFn: fetchLessons,
   });
 
-  const {data: exams, isLoading} = useQuery({
+  const { data: exams, isLoading } = useQuery({
     queryKey: ['exams', lessonFilter],
     queryFn: () => fetchExams(lessonFilter || undefined),
   });
@@ -68,8 +68,8 @@ export default function ExamsPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteExam,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['exams']});
-      toast.success('Exam deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['exams'] });
+      toast.success('Xóa bài kiểm tra thành công');
       setDeleteId(null);
     },
     onError: (error: Error) => {
@@ -78,21 +78,21 @@ export default function ExamsPage() {
   });
 
   const getLessonNameById = (lessonId: string) => {
-    return lessons?.find(l => l._id === lessonId)?.name || 'Unknown';
+    return lessons?.find(l => l._id === lessonId)?.name || 'Không rõ';
   };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Exams</CardTitle>
+          <CardTitle>Bài kiểm tra</CardTitle>
           <div className="flex gap-2">
             <Select value={lessonFilter || 'all'} onValueChange={v => setLessonFilter(v === 'all' ? '' : v)}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Filter by lesson" />
+                <SelectValue placeholder="Lọc theo bài học" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Lessons</SelectItem>
+                <SelectItem value="all">Tất cả bài học</SelectItem>
                 {lessons?.map(lesson => (
                   <SelectItem key={lesson._id} value={lesson._id}>
                     {lesson.name}
@@ -103,22 +103,22 @@ export default function ExamsPage() {
             <Button asChild>
               <Link href="/dashboard/exams/new">
                 <IconPlus className="mr-2 h-4 w-4" />
-                Add Exam
+                Thêm bài kiểm tra
               </Link>
             </Button>
           </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Lesson</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>Tên</TableHead>
+                  <TableHead>Bài học</TableHead>
+                  <TableHead>Mô tả</TableHead>
+                  <TableHead className="w-[100px]">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -148,7 +148,7 @@ export default function ExamsPage() {
                 {exams?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
-                      No exams found
+                      Không tìm thấy bài kiểm tra nào
                     </TableCell>
                   </TableRow>
                 )}
@@ -161,14 +161,14 @@ export default function ExamsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Exam</AlertDialogTitle>
+            <AlertDialogTitle>Xóa bài kiểm tra</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this exam? All questions in this exam will also be deleted.
+              Bạn có chắc chắn muốn xóa bài kiểm tra này không? Tất cả câu hỏi trong bài kiểm tra này cũng sẽ bị xóa.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Xóa</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

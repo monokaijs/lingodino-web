@@ -1,6 +1,6 @@
 'use client';
 
-import {IconDots, IconFolder, IconShare3, IconTrash, type Icon} from '@tabler/icons-react';
+import { IconDots, IconFolder, IconShare3, IconTrash, type Icon } from '@tabler/icons-react';
 
 import {
   DropdownMenu,
@@ -28,11 +28,11 @@ export function NavDocuments({
     icon: Icon;
   }[];
 }) {
-  const {isMobile} = useSidebar();
+  const { isMobile } = useSidebar();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-      <SidebarGroupLabel>Documents</SidebarGroupLabel>
+      <SidebarGroupLabel>Tài liệu</SidebarGroupLabel>
       <SidebarMenu>
         {items.map(item => (
           <SidebarMenuItem key={item.name}>
@@ -46,7 +46,7 @@ export function NavDocuments({
               <DropdownMenuTrigger asChild>
                 <SidebarMenuAction showOnHover className="data-[state=open]:bg-accent rounded-sm">
                   <IconDots />
-                  <span className="sr-only">More</span>
+                  <span className="sr-only">Thêm</span>
                 </SidebarMenuAction>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -56,16 +56,16 @@ export function NavDocuments({
               >
                 <DropdownMenuItem>
                   <IconFolder />
-                  <span>Open</span>
+                  <span>Mở</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem>
                   <IconShare3 />
-                  <span>Share</span>
+                  <span>Chia sẻ</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem variant="destructive">
                   <IconTrash />
-                  <span>Delete</span>
+                  <span>Xóa</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -74,7 +74,7 @@ export function NavDocuments({
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
             <IconDots className="text-sidebar-foreground/70" />
-            <span>More</span>
+            <span>Thêm</span>
           </SidebarMenuButton>
         </SidebarMenuItem>
       </SidebarMenu>

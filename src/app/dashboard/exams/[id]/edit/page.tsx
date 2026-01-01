@@ -1,9 +1,9 @@
 'use client';
 
-import {useQuery} from '@tanstack/react-query';
-import {ExamForm} from '../../exam-form';
-import {Exam} from '@/lib/types/models/exam';
-import {use} from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { ExamForm } from '../../exam-form';
+import { Exam } from '@/lib/types/models/exam';
+import { use } from 'react';
 
 interface ApiResponse<T> {
   data: T;
@@ -18,20 +18,20 @@ async function fetchExam(id: string): Promise<Exam> {
   return json.data;
 }
 
-export default function EditExamPage({params}: {params: Promise<{id: string}>}) {
-  const {id} = use(params);
+export default function EditExamPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
 
-  const {data: exam, isLoading} = useQuery({
+  const { data: exam, isLoading } = useQuery({
     queryKey: ['exams', id],
     queryFn: () => fetchExam(id),
   });
 
   if (isLoading) {
-    return <div className="flex flex-1 items-center justify-center">Loading...</div>;
+    return <div className="flex flex-1 items-center justify-center">Đang tải...</div>;
   }
 
   if (!exam) {
-    return <div className="flex flex-1 items-center justify-center">Exam not found</div>;
+    return <div className="flex flex-1 items-center justify-center">Không tìm thấy bài kiểm tra</div>;
   }
 
   return <ExamForm exam={exam} />;

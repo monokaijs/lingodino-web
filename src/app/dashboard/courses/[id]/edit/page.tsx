@@ -1,9 +1,9 @@
 'use client';
 
-import {useQuery} from '@tanstack/react-query';
-import {CourseForm} from '../../course-form';
-import {Course} from '@/lib/types/models/course';
-import {use} from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { CourseForm } from '../../course-form';
+import { Course } from '@/lib/types/models/course';
+import { use } from 'react';
 
 interface ApiResponse<T> {
   data: T;
@@ -18,20 +18,20 @@ async function fetchCourse(id: string): Promise<Course> {
   return json.data;
 }
 
-export default function EditCoursePage({params}: {params: Promise<{id: string}>}) {
-  const {id} = use(params);
+export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
 
-  const {data: course, isLoading} = useQuery({
+  const { data: course, isLoading } = useQuery({
     queryKey: ['courses', id],
     queryFn: () => fetchCourse(id),
   });
 
   if (isLoading) {
-    return <div className="flex flex-1 items-center justify-center">Loading...</div>;
+    return <div className="flex flex-1 items-center justify-center">Đang tải...</div>;
   }
 
   if (!course) {
-    return <div className="flex flex-1 items-center justify-center">Course not found</div>;
+    return <div className="flex flex-1 items-center justify-center">Không tìm thấy khóa học</div>;
   }
 
   return <CourseForm course={course} />;

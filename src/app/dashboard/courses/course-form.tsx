@@ -1,20 +1,20 @@
 'use client';
 
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {useRouter} from 'next/navigation';
-import {toast} from 'sonner';
-import {Course} from '@/lib/types/models/course';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { Course } from '@/lib/types/models/course';
 
 const courseSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Tên là bắt buộc'),
   description: z.string().optional(),
 });
 
@@ -27,7 +27,7 @@ interface CourseFormProps {
 async function createCourse(data: CourseFormData): Promise<Course> {
   const res = await fetch('/api/courses', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -38,7 +38,7 @@ async function createCourse(data: CourseFormData): Promise<Course> {
 async function updateCourse(id: string, data: CourseFormData): Promise<Course> {
   const res = await fetch(`/api/courses/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -46,7 +46,7 @@ async function updateCourse(id: string, data: CourseFormData): Promise<Course> {
   return json.data;
 }
 
-export function CourseForm({course}: CourseFormProps) {
+export function CourseForm({ course }: CourseFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEditing = !!course;
@@ -62,8 +62,8 @@ export function CourseForm({course}: CourseFormProps) {
   const mutation = useMutation({
     mutationFn: (data: CourseFormData) => (isEditing ? updateCourse(course._id, data) : createCourse(data)),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['courses']});
-      toast.success(isEditing ? 'Course updated successfully' : 'Course created successfully');
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      toast.success(isEditing ? 'Cập nhật khóa học thành công' : 'Tạo khóa học thành công');
       router.push('/dashboard/courses');
     },
     onError: (error: Error) => {
@@ -79,7 +79,7 @@ export function CourseForm({course}: CourseFormProps) {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <Card>
         <CardHeader>
-          <CardTitle>{isEditing ? 'Edit Course' : 'New Course'}</CardTitle>
+          <CardTitle>{isEditing ? 'Chỉnh sửa khóa học' : 'Thêm khóa học mới'}</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -87,11 +87,11 @@ export function CourseForm({course}: CourseFormProps) {
               <FormField
                 control={form.control}
                 name="name"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>Tên</FormLabel>
                     <FormControl>
-                      <Input placeholder="Course name" {...field} />
+                      <Input placeholder="Tên khóa học" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -100,11 +100,11 @@ export function CourseForm({course}: CourseFormProps) {
               <FormField
                 control={form.control}
                 name="description"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>Mô tả</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Course description" {...field} />
+                      <Textarea placeholder="Mô tả khóa học" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -112,10 +112,10 @@ export function CourseForm({course}: CourseFormProps) {
               />
               <div className="flex gap-2">
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+                  {mutation.isPending ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo'}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => router.back()}>
-                  Cancel
+                  Hủy
                 </Button>
               </div>
             </form>

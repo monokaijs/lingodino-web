@@ -1,20 +1,20 @@
 'use client';
 
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {toast} from 'sonner';
-import {Lesson} from '@/lib/types/models/lesson';
-import {useEffect} from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Lesson } from '@/lib/types/models/lesson';
+import { useEffect } from 'react';
 
 const lessonSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Tên là bắt buộc'),
   description: z.string().optional(),
 });
 
@@ -30,8 +30,8 @@ interface LessonDialogProps {
 async function createLesson(courseId: string, data: LessonFormData): Promise<Lesson> {
   const res = await fetch('/api/lessons', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({...data, courseId}),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...data, courseId }),
   });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
@@ -41,7 +41,7 @@ async function createLesson(courseId: string, data: LessonFormData): Promise<Les
 async function updateLesson(id: string, data: LessonFormData): Promise<Lesson> {
   const res = await fetch(`/api/lessons/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -49,7 +49,7 @@ async function updateLesson(id: string, data: LessonFormData): Promise<Lesson> {
   return json.data;
 }
 
-export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialogProps) {
+export function LessonDialog({ open, onOpenChange, courseId, lesson }: LessonDialogProps) {
   const queryClient = useQueryClient();
   const isEditing = !!lesson;
 
@@ -68,15 +68,15 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
         description: lesson.description || '',
       });
     } else {
-      form.reset({name: '', description: ''});
+      form.reset({ name: '', description: '' });
     }
   }, [lesson, form]);
 
   const mutation = useMutation({
     mutationFn: (data: LessonFormData) => (isEditing ? updateLesson(lesson._id, data) : createLesson(courseId, data)),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['lessons', courseId]});
-      toast.success(isEditing ? 'Lesson updated' : 'Lesson created');
+      queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
+      toast.success(isEditing ? 'Bài học đã được cập nhật' : 'Bài học đã được tạo');
       onOpenChange(false);
     },
     onError: (error: Error) => toast.error(error.message),
@@ -88,18 +88,18 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Lesson' : 'New Lesson'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Chỉnh sửa bài học' : 'Thêm bài học mới'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <FormLabel>Tên</FormLabel>
                   <FormControl>
-                    <Input placeholder="Lesson name" {...field} />
+                    <Input placeholder="Tên bài học" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -108,11 +108,11 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
             <FormField
               control={form.control}
               name="description"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Mô tả</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Lesson description" {...field} />
+                    <Textarea placeholder="Mô tả bài học" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -121,10 +121,10 @@ export function LessonDialog({open, onOpenChange, courseId, lesson}: LessonDialo
 
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                Hủy
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+                {mutation.isPending ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo'}
               </Button>
             </div>
           </form>

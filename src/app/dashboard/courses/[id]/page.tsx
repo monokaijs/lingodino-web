@@ -1,13 +1,13 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {IconPlus, IconEdit, IconTrash, IconArrowLeft, IconGripVertical} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { IconPlus, IconEdit, IconTrash, IconArrowLeft, IconGripVertical } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useEffect, useState} from 'react';
-import {useParams} from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,11 +18,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {toast} from 'sonner';
-import {Course} from '@/lib/types/models/course';
-import {Lesson} from '@/lib/types/models/lesson';
-import {LessonDialog} from './lesson-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { Course } from '@/lib/types/models/course';
+import { Lesson } from '@/lib/types/models/lesson';
+import { LessonDialog } from './lesson-dialog';
 import {
   DndContext,
   closestCenter,
@@ -33,7 +33,7 @@ import {
   DragEndEvent,
   DragOverlay,
 } from '@dnd-kit/core';
-import {restrictToVerticalAxis} from '@dnd-kit/modifiers';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
@@ -41,7 +41,7 @@ import {
   verticalListSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
-import {CSS} from '@dnd-kit/utilities';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ApiResponse<T> {
   data: T;
@@ -64,7 +64,7 @@ async function fetchLessons(courseId: string): Promise<Lesson[]> {
 }
 
 async function deleteLesson(id: string): Promise<void> {
-  const res = await fetch(`/api/lessons/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/lessons/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -72,8 +72,8 @@ async function deleteLesson(id: string): Promise<void> {
 async function updateLessonOrder(id: string, order: number): Promise<void> {
   const res = await fetch(`/api/lessons/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({order}),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ order }),
   });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
@@ -84,8 +84,8 @@ interface SortableRowProps {
   id: string;
 }
 
-function SortableRow({children, id}: SortableRowProps) {
-  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id});
+function SortableRow({ children, id }: SortableRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -115,14 +115,14 @@ export default function CourseDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
 
-  const {data: course} = useQuery({
+  const { data: course } = useQuery({
     queryKey: ['course', courseId],
     queryFn: () => fetchCourse(courseId),
   });
 
   const [optimisticLessons, setOptimisticLessons] = useState<Lesson[]>([]);
 
-  const {data: lessons, isLoading} = useQuery({
+  const { data: lessons, isLoading } = useQuery({
     queryKey: ['lessons', courseId],
     queryFn: () => fetchLessons(courseId),
   });
@@ -151,15 +151,15 @@ export default function CourseDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteLesson,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['lessons', courseId]});
-      toast.success('Lesson deleted');
+      queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
+      toast.success('Xóa bài học thành công');
       setDeleteId(null);
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    const {active, over} = event;
+    const { active, over } = event;
     setActiveId(null);
 
     if (active.id !== over?.id) {
@@ -189,12 +189,12 @@ export default function CourseDetailPage() {
         // arrayMove moved it, but didn't update the order property value in the object.
         // We probably don't need to update the order property in UI strictly, as long as position is correct.
         // But for consistency we should.
-        newItems[newIndex] = {...newItems[newIndex], order: newOrder};
+        newItems[newIndex] = { ...newItems[newIndex], order: newOrder };
 
         // Fire API update
         updateLessonOrder(active.id as string, newOrder).catch(err => {
-          toast.error('Failed to save order');
-          queryClient.invalidateQueries({queryKey: ['lessons', courseId]});
+          toast.error('Lưu thứ tự thất bại');
+          queryClient.invalidateQueries({ queryKey: ['lessons', courseId] });
         });
 
         return newItems;
@@ -234,17 +234,17 @@ export default function CourseDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Lessons</CardTitle>
-            <CardDescription>Manage lessons for this course</CardDescription>
+            <CardTitle>Bài học</CardTitle>
+            <CardDescription>Quản lý bài học cho khóa học này</CardDescription>
           </div>
           <Button onClick={handleCreate}>
             <IconPlus className="mr-2 h-4 w-4" />
-            Add Lesson
+            Thêm bài học
           </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <DndContext
               sensors={sensors}
@@ -257,9 +257,9 @@ export default function CourseDetailPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]"></TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="w-[100px]">Actions</TableHead>
+                    <TableHead>Tên</TableHead>
+                    <TableHead>Mô tả</TableHead>
+                    <TableHead className="w-[100px]">Hành động</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -288,7 +288,7 @@ export default function CourseDetailPage() {
                   {optimisticLessons?.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-8">
-                        No lessons found
+                        Không tìm thấy bài học nào
                       </TableCell>
                     </TableRow>
                   )}
@@ -333,13 +333,13 @@ export default function CourseDetailPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Lesson</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>Xóa bài học</AlertDialogTitle>
+            <AlertDialogDescription>Bạn có chắc chắn không? Hành động này không thể hoàn tác.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction asChild onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
-              <Button variant="destructive">Delete</Button>
+              <Button variant="destructive">Xóa</Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

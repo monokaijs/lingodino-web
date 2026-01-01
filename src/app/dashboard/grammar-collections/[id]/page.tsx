@@ -1,22 +1,22 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {IconArrowLeft, IconDownload, IconEye} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { IconArrowLeft, IconDownload, IconEye } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
-import {useParams} from 'next/navigation';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
-import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {Textarea} from '@/components/ui/textarea';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
-import {toast} from 'sonner';
-import {GrammarCollection, GrammarItem} from '@/lib/types/models/grammar';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {Badge} from '@/components/ui/badge';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { GrammarCollection, GrammarItem } from '@/lib/types/models/grammar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 interface ApiResponse<T> {
   data: T;
@@ -41,11 +41,11 @@ async function fetchItems(collectionId: string): Promise<GrammarItem[]> {
 
 async function importGrammar(
   id: string,
-  payload: {url?: string; data?: any}
-): Promise<{count: number; skipped: number}> {
+  payload: { url?: string; data?: any }
+): Promise<{ count: number; skipped: number }> {
   const res = await fetch(`/api/grammar-collections/${id}/import`, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   const json = await res.json();
@@ -62,22 +62,22 @@ export default function CollectionDetailPage() {
   const [importJson, setImportJson] = useState('');
   const [selectedItem, setSelectedItem] = useState<GrammarItem | null>(null);
 
-  const {data: collection} = useQuery({
+  const { data: collection } = useQuery({
     queryKey: ['grammar-collection', collectionId],
     queryFn: () => fetchCollection(collectionId),
   });
 
-  const {data: items, isLoading} = useQuery({
+  const { data: items, isLoading } = useQuery({
     queryKey: ['grammar-items', collectionId],
     queryFn: () => fetchItems(collectionId),
   });
 
   const importMutation = useMutation({
-    mutationFn: (payload: {url?: string; data?: any}) => importGrammar(collectionId, payload),
+    mutationFn: (payload: { url?: string; data?: any }) => importGrammar(collectionId, payload),
     onSuccess: data => {
-      queryClient.invalidateQueries({queryKey: ['grammar-collection', collectionId]});
-      queryClient.invalidateQueries({queryKey: ['grammar-items', collectionId]});
-      toast.success(`Imported ${data.count} grammar rules${data.skipped > 0 ? ` (${data.skipped} skipped)` : ''}`);
+      queryClient.invalidateQueries({ queryKey: ['grammar-collection', collectionId] });
+      queryClient.invalidateQueries({ queryKey: ['grammar-items', collectionId] });
+      toast.success(`Đã nhập ${data.count} quy tắc ngữ pháp${data.skipped > 0 ? ` (${data.skipped} bỏ qua)` : ''}`);
       setImportDialogOpen(false);
       setImportUrl('');
       setImportJson('');
@@ -89,22 +89,22 @@ export default function CollectionDetailPage() {
 
   const handleImportFromUrl = () => {
     if (!importUrl.trim()) {
-      toast.error('Please enter a URL');
+      toast.error('Vui lòng nhập URL');
       return;
     }
-    importMutation.mutate({url: importUrl});
+    importMutation.mutate({ url: importUrl });
   };
 
   const handleImportFromJson = () => {
     if (!importJson.trim()) {
-      toast.error('Please paste JSON data');
+      toast.error('Vui lòng dán dữ liệu JSON');
       return;
     }
     try {
       const data = JSON.parse(importJson);
-      importMutation.mutate({data});
+      importMutation.mutate({ data });
     } catch {
-      toast.error('Invalid JSON format');
+      toast.error('Định dạng JSON không hợp lệ');
     }
   };
 
@@ -133,25 +133,25 @@ export default function CollectionDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Grammar Items</CardTitle>
-            <CardDescription>{collection?.itemCount || 0} items in this collection</CardDescription>
+            <CardTitle>Mục ngữ pháp</CardTitle>
+            <CardDescription>{collection?.itemCount || 0} mục trong bộ sưu tập này</CardDescription>
           </div>
           <Button onClick={() => setImportDialogOpen(true)}>
             <IconDownload className="mr-2 h-4 w-4" />
-            Import from JSON
+            Nhập từ JSON
           </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Grammar</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>Mã</TableHead>
+                  <TableHead>Tên</TableHead>
+                  <TableHead>Ngữ pháp</TableHead>
+                  <TableHead className="w-[100px]">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -174,7 +174,7 @@ export default function CollectionDetailPage() {
                 {items?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
-                      No grammar items yet. Import from JSON to get started.
+                      Chưa có mục ngữ pháp nào. Nhập từ JSON để bắt đầu.
                     </TableCell>
                   </TableRow>
                 )}
@@ -194,21 +194,21 @@ export default function CollectionDetailPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-muted-foreground text-xs">Code</Label>
+                  <Label className="text-muted-foreground text-xs">Mã</Label>
                   <p className="font-mono">{selectedItem.code}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground text-xs">Examples</Label>
+                  <Label className="text-muted-foreground text-xs">Ví dụ</Label>
                   <p>{selectedItem.examples?.length || 0}</p>
                 </div>
               </div>
               <div>
-                <Label className="text-muted-foreground text-xs">Grammar Pattern</Label>
+                <Label className="text-muted-foreground text-xs">Mẫu ngữ pháp</Label>
                 <p className="text-lg font-medium">{selectedItem.grammar || '-'}</p>
               </div>
               {selectedItem.examples && selectedItem.examples.length > 0 && (
                 <div>
-                  <Label className="text-muted-foreground text-xs">Examples</Label>
+                  <Label className="text-muted-foreground text-xs">Ví dụ</Label>
                   <div className="space-y-3 mt-2">
                     {selectedItem.examples.map((ex, i) => (
                       <div key={i} className="border rounded-lg p-3 space-y-1">
@@ -229,16 +229,16 @@ export default function CollectionDetailPage() {
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Import Grammar Rules</DialogTitle>
+            <DialogTitle>Nhập quy tắc ngữ pháp</DialogTitle>
           </DialogHeader>
           <Tabs defaultValue="url" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="url">From URL</TabsTrigger>
-              <TabsTrigger value="json">Paste JSON</TabsTrigger>
+              <TabsTrigger value="url">Từ URL</TabsTrigger>
+              <TabsTrigger value="json">Dán JSON</TabsTrigger>
             </TabsList>
             <TabsContent value="url" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="import-url">JSON URL</Label>
+                <Label htmlFor="import-url">URL JSON</Label>
                 <Input
                   id="import-url"
                   placeholder="https://example.com/grammars.json"
@@ -247,12 +247,12 @@ export default function CollectionDetailPage() {
                 />
               </div>
               <Button onClick={handleImportFromUrl} disabled={importMutation.isPending} className="w-full">
-                {importMutation.isPending ? 'Importing...' : 'Import from URL'}
+                {importMutation.isPending ? 'Đang nhập...' : 'Nhập từ URL'}
               </Button>
             </TabsContent>
             <TabsContent value="json" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label htmlFor="import-json">JSON Data</Label>
+                <Label htmlFor="import-json">Dữ liệu JSON</Label>
                 <Textarea
                   id="import-json"
                   placeholder='[{"code": "G001", "name": "...", "grammar": "..."}]'
@@ -263,7 +263,7 @@ export default function CollectionDetailPage() {
                 />
               </div>
               <Button onClick={handleImportFromJson} disabled={importMutation.isPending} className="w-full">
-                {importMutation.isPending ? 'Importing...' : 'Import JSON'}
+                {importMutation.isPending ? 'Đang nhập...' : 'Nhập JSON'}
               </Button>
             </TabsContent>
           </Tabs>

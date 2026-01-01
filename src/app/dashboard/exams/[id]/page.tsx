@@ -1,13 +1,13 @@
 'use client';
 
-import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
-import {IconArrowLeft, IconEdit, IconPlus, IconTrash} from '@tabler/icons-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconArrowLeft, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
-import {useParams} from 'next/navigation';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,10 +18,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {toast} from 'sonner';
-import {Exam, ExamQuestion} from '@/lib/types/models/exam';
-import {Badge} from '@/components/ui/badge';
-import {QuestionDialog, questionTypeLabels} from './question-dialog';
+import { toast } from 'sonner';
+import { Exam, ExamQuestion } from '@/lib/types/models/exam';
+import { Badge } from '@/components/ui/badge';
+import { QuestionDialog, questionTypeLabels } from './question-dialog';
 
 interface ApiResponse<T> {
   data: T;
@@ -44,7 +44,7 @@ async function fetchQuestions(examId: string): Promise<ExamQuestion[]> {
 }
 
 async function deleteQuestion(id: string): Promise<void> {
-  const res = await fetch(`/api/questions/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/questions/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -57,12 +57,12 @@ export default function ExamDetailPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<ExamQuestion | null>(null);
 
-  const {data: exam} = useQuery({
+  const { data: exam } = useQuery({
     queryKey: ['exam', examId],
     queryFn: () => fetchExam(examId),
   });
 
-  const {data: questions, isLoading} = useQuery({
+  const { data: questions, isLoading } = useQuery({
     queryKey: ['questions', examId],
     queryFn: () => fetchQuestions(examId),
   });
@@ -70,8 +70,8 @@ export default function ExamDetailPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteQuestion,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['questions', examId]});
-      toast.success('Question deleted');
+      queryClient.invalidateQueries({ queryKey: ['questions', examId] });
+      toast.success('Đã xóa câu hỏi');
       setDeleteId(null);
     },
     onError: (error: Error) => toast.error(error.message),
@@ -109,25 +109,25 @@ export default function ExamDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Questions</CardTitle>
-            <CardDescription>Manage questions for this exam</CardDescription>
+            <CardTitle>Câu hỏi</CardTitle>
+            <CardDescription>Quản lý câu hỏi cho bài kiểm tra này</CardDescription>
           </div>
           <Button onClick={handleCreate}>
             <IconPlus className="mr-2 h-4 w-4" />
-            Add Question
+            Thêm câu hỏi
           </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Question</TableHead>
-                  <TableHead>Options</TableHead>
-                  <TableHead className="w-25">Actions</TableHead>
+                  <TableHead>Loại</TableHead>
+                  <TableHead>Câu hỏi</TableHead>
+                  <TableHead>Tùy chọn</TableHead>
+                  <TableHead className="w-25">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -137,7 +137,7 @@ export default function ExamDetailPage() {
                       <Badge variant="secondary">{questionTypeLabels[q.type]}</Badge>
                     </TableCell>
                     <TableCell className="font-medium max-w-75 truncate">{q.question}</TableCell>
-                    <TableCell>{q.options?.length || 0} options</TableCell>
+                    <TableCell>{q.options?.length || 0} tùy chọn</TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         <Button variant="ghost" size="icon-sm" onClick={() => handleEdit(q)}>
@@ -153,7 +153,7 @@ export default function ExamDetailPage() {
                 {questions?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
-                      No questions found
+                      Không tìm thấy câu hỏi nào
                     </TableCell>
                   </TableRow>
                 )}
@@ -168,12 +168,12 @@ export default function ExamDetailPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Question</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure? This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>Xóa câu hỏi</AlertDialogTitle>
+            <AlertDialogDescription>Bạn có chắc chắn không? Hành động này không thể hoàn tác.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Xóa</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

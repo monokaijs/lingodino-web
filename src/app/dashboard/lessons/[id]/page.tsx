@@ -1,15 +1,15 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {GenerateExamDialog} from './generate-exam-dialog';
-import {IconPlus, IconEdit, IconTrash, IconArrowLeft, IconX, IconWand} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GenerateExamDialog } from './generate-exam-dialog';
+import { IconPlus, IconEdit, IconTrash, IconArrowLeft, IconX, IconWand } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
-import {useParams, useRouter} from 'next/navigation';
+import { useState } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,16 +20,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {toast} from 'sonner';
-import {Lesson} from '@/lib/types/models/lesson';
-import {Exam} from '@/lib/types/models/exam';
-import {ExamDialog} from './exam-dialog';
-import {LessonDialog} from '@/app/dashboard/courses/[id]/lesson-dialog';
-import {AddVocabDialog} from './add-vocab-dialog';
-import {AddGrammarDialog} from './add-grammar-dialog';
-import {Badge} from '@/components/ui/badge';
-import {Accordion, AccordionContent, AccordionItem, AccordionTrigger} from '@/components/ui/accordion';
-import {cn} from '@/lib/utils/cn';
+import { toast } from 'sonner';
+import { Lesson } from '@/lib/types/models/lesson';
+import { Exam } from '@/lib/types/models/exam';
+import { ExamDialog } from './exam-dialog';
+import { LessonDialog } from '@/app/dashboard/courses/[id]/lesson-dialog';
+import { AddVocabDialog } from './add-vocab-dialog';
+import { AddGrammarDialog } from './add-grammar-dialog';
+import { Badge } from '@/components/ui/badge';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { cn } from '@/lib/utils/cn';
 
 interface ApiResponse<T> {
   data: T;
@@ -74,7 +74,7 @@ async function fetchConversations() {
 async function updateLesson(id: string, data: Partial<Lesson>): Promise<Lesson> {
   const res = await fetch(`/api/lessons/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -83,7 +83,7 @@ async function updateLesson(id: string, data: Partial<Lesson>): Promise<Lesson> 
 }
 
 async function deleteExam(id: string): Promise<void> {
-  const res = await fetch(`/api/exams/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/exams/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -103,31 +103,31 @@ export default function LessonDetailPage() {
   const [grammarDialogOpen, setGrammarDialogOpen] = useState(false);
   const [genExamOpen, setGenExamOpen] = useState(false);
 
-  const {data: lesson, isLoading: isLessonLoading} = useQuery({
+  const { data: lesson, isLoading: isLessonLoading } = useQuery({
     queryKey: ['lesson', lessonId],
     queryFn: () => fetchLesson(lessonId),
   });
 
   // Start prefetching conversations IF we don't have them yet or just rely on query
   // We need all conversations first to find the linked one for details
-  const {data: conversations = []} = useQuery({
+  const { data: conversations = [] } = useQuery({
     queryKey: ['conversations'],
     queryFn: fetchConversations,
   });
 
-  const {data: exams, isLoading: isExamsLoading} = useQuery({
+  const { data: exams, isLoading: isExamsLoading } = useQuery({
     queryKey: ['exams', lessonId],
     queryFn: () => fetchExams(lessonId),
   });
 
   // Fetch details for lists
-  const {data: vocabList = []} = useQuery({
+  const { data: vocabList = [] } = useQuery({
     queryKey: ['lesson-vocab', lesson?.vocabularyIds],
     queryFn: () => fetchVocabItems(lesson?.vocabularyIds || []),
     enabled: !!lesson?.vocabularyIds?.length,
   });
 
-  const {data: grammarList = []} = useQuery({
+  const { data: grammarList = [] } = useQuery({
     queryKey: ['lesson-grammar', lesson?.grammarIds],
     queryFn: () => fetchGrammarItems(lesson?.grammarIds || []),
     enabled: !!lesson?.grammarIds?.length,
@@ -136,8 +136,8 @@ export default function LessonDetailPage() {
   const updateLessonMutation = useMutation({
     mutationFn: (data: Partial<Lesson>) => updateLesson(lessonId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['lesson', lessonId]});
-      toast.success('Lesson updated');
+      queryClient.invalidateQueries({ queryKey: ['lesson', lessonId] });
+      toast.success('Đã cập nhật bài học');
     },
     onError: err => toast.error(err.message),
   });
@@ -145,47 +145,47 @@ export default function LessonDetailPage() {
   const deleteExamMutation = useMutation({
     mutationFn: deleteExam,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['exams', lessonId]});
-      toast.success('Exam deleted');
+      queryClient.invalidateQueries({ queryKey: ['exams', lessonId] });
+      toast.success('Đã xóa bài kiểm tra');
       setDeleteExamId(null);
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
   const handleUpdateConversation = (convId: string) => {
-    updateLessonMutation.mutate({conversationId: convId});
+    updateLessonMutation.mutate({ conversationId: convId });
   };
 
   const handleRemoveConversation = () => {
-    updateLessonMutation.mutate({conversationId: '' as any});
+    updateLessonMutation.mutate({ conversationId: '' as any });
   };
 
   const handleAddVocab = (newIds: string[]) => {
     if (!lesson) return;
     const currentIds = lesson.vocabularyIds || [];
     const merged = Array.from(new Set([...currentIds, ...newIds]));
-    updateLessonMutation.mutate({vocabularyIds: merged});
+    updateLessonMutation.mutate({ vocabularyIds: merged });
   };
 
   const handleRemoveVocab = (id: string) => {
     if (!lesson) return;
     const currentIds = lesson.vocabularyIds || [];
     const filtered = currentIds.filter(vid => vid !== id);
-    updateLessonMutation.mutate({vocabularyIds: filtered});
+    updateLessonMutation.mutate({ vocabularyIds: filtered });
   };
 
   const handleAddGrammar = (newIds: string[]) => {
     if (!lesson) return;
     const currentIds = lesson.grammarIds || [];
     const merged = Array.from(new Set([...currentIds, ...newIds]));
-    updateLessonMutation.mutate({grammarIds: merged});
+    updateLessonMutation.mutate({ grammarIds: merged });
   };
 
   const handleRemoveGrammar = (id: string) => {
     if (!lesson) return;
     const currentIds = lesson.grammarIds || [];
     const filtered = currentIds.filter(gid => gid !== id);
-    updateLessonMutation.mutate({grammarIds: filtered});
+    updateLessonMutation.mutate({ grammarIds: filtered });
   };
 
   // --- Handlers ---
@@ -225,7 +225,7 @@ export default function LessonDetailPage() {
             <IconArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
-        <h1 className="text-xl font-semibold truncate text-muted-foreground/70">Lesson Details</h1>
+        <h1 className="text-xl font-semibold truncate text-muted-foreground/70">Chi tiết bài học</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6 items-start">
@@ -238,9 +238,9 @@ export default function LessonDetailPage() {
                 <AccordionItem value="transcript" className="border-none">
                   <AccordionTrigger className="px-6 hover:no-underline py-4">
                     <CardTitle className="flex items-center gap-2">
-                      <span className="text-primary">Transcript</span>
+                      <span className="text-primary">Bản ghi</span>
                       <Badge variant="outline" className="ml-2 font-normal text-muted-foreground">
-                        {currentConversation.sentences?.length || 0} lines
+                        {currentConversation.sentences?.length || 0} dòng
                       </Badge>
                     </CardTitle>
                   </AccordionTrigger>
@@ -261,7 +261,7 @@ export default function LessonDetailPage() {
                       ))}
                       {(!currentConversation.sentences || currentConversation.sentences.length === 0) && (
                         <p className="text-muted-foreground italic text-center py-4">
-                          No specific dialogue sentences found.
+                          Không tìm thấy câu hội thoại nào.
                         </p>
                       )}
                     </div>
@@ -274,9 +274,9 @@ export default function LessonDetailPage() {
           {/* Vocabulary Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">Vocabulary ({lesson?.vocabularyIds?.length || 0})</CardTitle>
+              <CardTitle className="text-lg font-medium">Từ vựng ({lesson?.vocabularyIds?.length || 0})</CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setVocabDialogOpen(true)}>
-                <IconPlus className="h-4 w-4 mr-1" /> Add
+                <IconPlus className="h-4 w-4 mr-1" /> Thêm
               </Button>
             </CardHeader>
             <CardContent>
@@ -299,16 +299,16 @@ export default function LessonDetailPage() {
                   </div>
                 ))}
               </div>
-              {vocabList.length === 0 && <p className="text-center text-muted-foreground py-8">No vocabulary added.</p>}
+              {vocabList.length === 0 && <p className="text-center text-muted-foreground py-8">Chưa có từ vựng nào được thêm.</p>}
             </CardContent>
           </Card>
 
           {/* Grammar Card */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-lg font-medium">Grammar ({lesson?.grammarIds?.length || 0})</CardTitle>
+              <CardTitle className="text-lg font-medium">Ngữ pháp ({lesson?.grammarIds?.length || 0})</CardTitle>
               <Button variant="ghost" size="sm" onClick={() => setGrammarDialogOpen(true)}>
-                <IconPlus className="h-4 w-4 mr-1" /> Add
+                <IconPlus className="h-4 w-4 mr-1" /> Thêm
               </Button>
             </CardHeader>
             <CardContent>
@@ -332,7 +332,7 @@ export default function LessonDetailPage() {
                   </div>
                 ))}
               </div>
-              {grammarList.length === 0 && <p className="text-center text-muted-foreground py-8">No grammar added.</p>}
+              {grammarList.length === 0 && <p className="text-center text-muted-foreground py-8">Chưa có ngữ pháp nào được thêm.</p>}
             </CardContent>
           </Card>
 
@@ -340,23 +340,23 @@ export default function LessonDetailPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Exams</CardTitle>
-                <CardDescription>Assessments for this lesson</CardDescription>
+                <CardTitle>Bài kiểm tra</CardTitle>
+                <CardDescription>Đánh giá cho bài học này</CardDescription>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => setGenExamOpen(true)}>
                   <IconWand className="mr-2 h-4 w-4 text-purple-500" />
-                  Generate with AI
+                  Tạo bằng AI
                 </Button>
                 <Button onClick={handleCreateExam} size="sm">
                   <IconPlus className="mr-2 h-4 w-4" />
-                  Add Exam
+                  Thêm bài kiểm tra
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {isExamsLoading ? (
-                <div className="text-center py-8">Loading...</div>
+                <div className="text-center py-8">Đang tải...</div>
               ) : (
                 <div className="grid grid-cols-1 gap-3">
                   {exams?.map(exam => (
@@ -372,7 +372,7 @@ export default function LessonDetailPage() {
                           {exam.name}
                         </Link>
                         <p className="text-sm text-muted-foreground line-clamp-1">
-                          {exam.description || 'No description'}
+                          {exam.description || 'Không có mô tả'}
                         </p>
                       </div>
                       <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -387,7 +387,7 @@ export default function LessonDetailPage() {
                   ))}
                   {exams?.length === 0 && (
                     <div className="text-center py-12 text-muted-foreground border-2 border-dashed rounded-lg">
-                      No exams found
+                      Không tìm thấy bài kiểm tra nào
                     </div>
                   )}
                 </div>
@@ -407,7 +407,7 @@ export default function LessonDetailPage() {
                   <IconEdit className="h-4 w-4" />
                 </Button>
               </div>
-              <CardDescription>{lesson?.description || 'No description provided.'}</CardDescription>
+              <CardDescription>{lesson?.description || 'Chưa có mô tả.'}</CardDescription>
             </CardHeader>
           </Card>
 
@@ -422,7 +422,7 @@ export default function LessonDetailPage() {
                     size="icon-sm"
                     className="h-6 w-6"
                     onClick={handleRemoveConversation}
-                    title="Unlink"
+                    title="Hủy liên kết"
                   >
                     <IconX className="h-3 w-3" />
                   </Button>
@@ -444,9 +444,9 @@ export default function LessonDetailPage() {
                 </div>
               ) : (
                 <div className="text-center p-6">
-                  <p className="text-sm text-muted-foreground mb-2">No media available</p>
+                  <p className="text-sm text-muted-foreground mb-2">Không có phương tiện nào</p>
                   {!lesson?.conversationId && (
-                    <p className="text-xs text-muted-foreground">Link a conversation to see content</p>
+                    <p className="text-xs text-muted-foreground">Liên kết hội thoại để xem nội dung</p>
                   )}
                 </div>
               )}
@@ -456,10 +456,10 @@ export default function LessonDetailPage() {
               <div className="space-y-4">
                 {/* Selector */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-muted-foreground uppercase">Linked Conversation</label>
+                  <label className="text-xs font-semibold text-muted-foreground uppercase">Hội thoại được liên kết</label>
                   <Select value={lesson?.conversationId || ''} onValueChange={handleUpdateConversation}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select conversation..." />
+                      <SelectValue placeholder="Chọn hội thoại..." />
                     </SelectTrigger>
                     <SelectContent>
                       {conversations.map((c: any) => (
@@ -477,7 +477,7 @@ export default function LessonDetailPage() {
                       href={`/dashboard/conversations/${currentConversation._id}`}
                       className="text-xs flex items-center gap-1 text-primary hover:underline"
                     >
-                      Edit Conversation <IconArrowLeft className="h-3 w-3 rotate-180" />
+                      Chỉnh sửa hội thoại <IconArrowLeft className="h-3 w-3 rotate-180" />
                     </Link>
                   </div>
                 )}
@@ -494,7 +494,7 @@ export default function LessonDetailPage() {
           open={lessonDialogOpen}
           onOpenChange={open => {
             setLessonDialogOpen(open);
-            if (!open) queryClient.invalidateQueries({queryKey: ['lesson', lessonId]});
+            if (!open) queryClient.invalidateQueries({ queryKey: ['lesson', lessonId] });
           }}
           courseId={lesson.courseId}
           lesson={lesson}
@@ -508,13 +508,13 @@ export default function LessonDetailPage() {
       <AlertDialog open={!!deleteExamId} onOpenChange={() => setDeleteExamId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Exam</AlertDialogTitle>
-            <AlertDialogDescription>Are you sure? This will also delete all questions.</AlertDialogDescription>
+            <AlertDialogTitle>Xóa bài kiểm tra</AlertDialogTitle>
+            <AlertDialogDescription>Bạn có chắc chắn không? Hành động này cũng sẽ xóa tất cả câu hỏi.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction asChild onClick={() => deleteExamId && deleteExamMutation.mutate(deleteExamId)}>
-              <Button variant="destructive">Delete</Button>
+              <Button variant="destructive">Xóa</Button>
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

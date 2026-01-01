@@ -1,8 +1,8 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import {
   IconPlus,
   IconEdit,
@@ -15,7 +15,7 @@ import {
   IconWaveSquare,
 } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,14 +26,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
-import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {Textarea} from '@/components/ui/textarea';
-import {Badge} from '@/components/ui/badge';
-import {toast} from 'sonner';
-import {Conversation, ConversationStatus} from '@/lib/types/models/conversation';
-import {cn} from '@/lib/utils/cn';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { Conversation, ConversationStatus } from '@/lib/types/models/conversation';
+import { cn } from '@/lib/utils/cn';
 
 interface ApiResponse<T> {
   data: T;
@@ -49,10 +49,10 @@ async function fetchConversations(): Promise<Conversation[]> {
   return json.data;
 }
 
-async function createConversation(data: {name: string; description?: string}): Promise<Conversation> {
+async function createConversation(data: { name: string; description?: string }): Promise<Conversation> {
   const res = await fetch('/api/conversations', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json: ApiResponse<Conversation> = await res.json();
@@ -61,7 +61,7 @@ async function createConversation(data: {name: string; description?: string}): P
 }
 
 async function deleteConversation(id: string): Promise<void> {
-  const res = await fetch(`/api/conversations/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/conversations/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -108,7 +108,7 @@ export default function ConversationsPage() {
   const [newName, setNewName] = useState('');
   const [newDescription, setNewDescription] = useState('');
 
-  const {data: conversations, isLoading} = useQuery({
+  const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: fetchConversations,
   });
@@ -116,8 +116,8 @@ export default function ConversationsPage() {
   const createMutation = useMutation({
     mutationFn: createConversation,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['conversations']});
-      toast.success('Conversation created successfully');
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast.success('Tạo hội thoại thành công');
       setCreateDialogOpen(false);
       setNewName('');
       setNewDescription('');
@@ -130,8 +130,8 @@ export default function ConversationsPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteConversation,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['conversations']});
-      toast.success('Conversation deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      toast.success('Xóa hội thoại thành công');
       setDeleteId(null);
     },
     onError: (error: Error) => {
@@ -141,16 +141,16 @@ export default function ConversationsPage() {
 
   const handleCreate = () => {
     if (!newName.trim()) {
-      toast.error('Please enter a conversation name');
+      toast.error('Vui lòng nhập tên hội thoại');
       return;
     }
-    createMutation.mutate({name: newName, description: newDescription});
+    createMutation.mutate({ name: newName, description: newDescription });
   };
 
   const handleDownload = async (id: string) => {
     try {
       await downloadAudio(id);
-      toast.success('Download started');
+      toast.success('Bắt đầu tải xuống');
     } catch (error: any) {
       toast.error(error.message);
     }
@@ -161,12 +161,12 @@ export default function ConversationsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Audio Conversations</h1>
-          <p className="text-muted-foreground">Create and manage dialogue audio using ElevenLabs AI</p>
+          <h1 className="text-2xl font-bold">Hội thoại âm thanh</h1>
+          <p className="text-muted-foreground">Tạo và quản lý âm thanh hội thoại sử dụng AI ElevenLabs</p>
         </div>
         <Button onClick={() => setCreateDialogOpen(true)}>
           <IconPlus className="mr-2 h-4 w-4" />
-          New Conversation
+          Thêm hội thoại mới
         </Button>
       </div>
 
@@ -179,11 +179,11 @@ export default function ConversationsPage() {
         <Card className="border-dashed">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <IconWaveSquare className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium mb-1">No conversations yet</h3>
-            <p className="text-muted-foreground text-sm mb-4">Create your first dialogue conversation</p>
+            <h3 className="text-lg font-medium mb-1">Chưa có hội thoại nào</h3>
+            <p className="text-muted-foreground text-sm mb-4">Tạo hội thoại đầu tiên của bạn</p>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <IconPlus className="mr-2 h-4 w-4" />
-              Create Conversation
+              Tạo hội thoại
             </Button>
           </CardContent>
         </Card>
@@ -206,7 +206,7 @@ export default function ConversationsPage() {
                       </CardTitle>
                     </Link>
                     <CardDescription className="line-clamp-2 mt-1">
-                      {conversation.description || 'No description'}
+                      {conversation.description || 'Không có mô tả'}
                     </CardDescription>
                   </div>
                   <Badge variant={getStatusVariant(conversation.status)} className="shrink-0">
@@ -218,9 +218,9 @@ export default function ConversationsPage() {
               <CardContent>
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
-                    <span>{conversation.sentences?.length || 0} sentences</span>
+                    <span>{conversation.sentences?.length || 0} câu</span>
                     <span>•</span>
-                    <span>{conversation.participants?.length || 0} speakers</span>
+                    <span>{conversation.participants?.length || 0} người nói</span>
                   </div>
                 </div>
 
@@ -229,7 +229,7 @@ export default function ConversationsPage() {
                   <Button variant="outline" size="sm" asChild className="flex-1">
                     <Link href={`/dashboard/conversations/${conversation._id}`}>
                       <IconEdit className="h-4 w-4 mr-1" />
-                      Edit
+                      Sửa
                     </Link>
                   </Button>
                   {conversation.status === ConversationStatus.Completed && (
@@ -256,23 +256,23 @@ export default function ConversationsPage() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New Conversation</DialogTitle>
+            <DialogTitle>Thêm hội thoại mới</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">Tên</Label>
               <Input
                 id="name"
-                placeholder="e.g., Restaurant Dialogue"
+                placeholder="Ví dụ: Hội thoại nhà hàng"
                 value={newName}
                 onChange={e => setNewName(e.target.value)}
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description (optional)</Label>
+              <Label htmlFor="description">Mô tả (tùy chọn)</Label>
               <Textarea
                 id="description"
-                placeholder="Describe the conversation..."
+                placeholder="Mô tả hội thoại..."
                 value={newDescription}
                 onChange={e => setNewDescription(e.target.value)}
                 rows={3}
@@ -281,10 +281,10 @@ export default function ConversationsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Cancel
+              Hủy
             </Button>
             <Button onClick={handleCreate} disabled={createMutation.isPending}>
-              {createMutation.isPending ? 'Creating...' : 'Create'}
+              {createMutation.isPending ? 'Đang tạo...' : 'Tạo'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -294,19 +294,18 @@ export default function ConversationsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogTitle>Xóa hội thoại</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this conversation? The generated audio will also be deleted. This action
-              cannot be undone.
+              Bạn có chắc chắn muốn xóa hội thoại này không? Âm thanh đã tạo cũng sẽ bị xóa. Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteId && deleteMutation.mutate(deleteId)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

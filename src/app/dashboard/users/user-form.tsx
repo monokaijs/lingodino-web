@@ -1,21 +1,21 @@
 'use client';
 
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {useRouter} from 'next/navigation';
-import {toast} from 'sonner';
-import {User, UserRole} from '@/lib/types/models/user';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
+import { User, UserRole } from '@/lib/types/models/user';
 
 const userSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required'),
-  email: z.string().email('Invalid email address'),
+  fullName: z.string().min(1, 'Họ và tên là bắt buộc'),
+  email: z.string().email('Địa chỉ email không hợp lệ'),
   role: z.nativeEnum(UserRole),
   photo: z.string().optional(),
 });
@@ -29,7 +29,7 @@ interface UserFormProps {
 async function updateUser(id: string, data: UserFormData): Promise<User> {
   const res = await fetch(`/api/users/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -37,7 +37,7 @@ async function updateUser(id: string, data: UserFormData): Promise<User> {
   return json.data;
 }
 
-export function UserForm({user}: UserFormProps) {
+export function UserForm({ user }: UserFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -54,9 +54,9 @@ export function UserForm({user}: UserFormProps) {
   const mutation = useMutation({
     mutationFn: (data: UserFormData) => updateUser(user._id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['users']});
-      queryClient.invalidateQueries({queryKey: ['user', user._id]});
-      toast.success('User updated successfully');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', user._id] });
+      toast.success('Cập nhật người dùng thành công');
       router.push('/dashboard/users');
     },
     onError: (error: Error) => {
@@ -72,7 +72,7 @@ export function UserForm({user}: UserFormProps) {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <Card>
         <CardHeader>
-          <CardTitle>Edit User</CardTitle>
+          <CardTitle>Chỉnh sửa người dùng</CardTitle>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -80,11 +80,11 @@ export function UserForm({user}: UserFormProps) {
               <FormField
                 control={form.control}
                 name="fullName"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Họ và tên</FormLabel>
                     <FormControl>
-                      <Input placeholder="Full name" {...field} />
+                      <Input placeholder="Họ và tên" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -93,11 +93,11 @@ export function UserForm({user}: UserFormProps) {
               <FormField
                 control={form.control}
                 name="email"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Email address" {...field} />
+                      <Input type="email" placeholder="Địa chỉ email" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -106,18 +106,18 @@ export function UserForm({user}: UserFormProps) {
               <FormField
                 control={form.control}
                 name="role"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Role</FormLabel>
+                    <FormLabel>Vai trò</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select a role" />
+                          <SelectValue placeholder="Chọn một vai trò" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value={UserRole.Admin}>Admin</SelectItem>
-                        <SelectItem value={UserRole.User}>User</SelectItem>
+                        <SelectItem value={UserRole.Admin}>Quản trị viên</SelectItem>
+                        <SelectItem value={UserRole.User}>Người dùng</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -127,11 +127,11 @@ export function UserForm({user}: UserFormProps) {
               <FormField
                 control={form.control}
                 name="photo"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Photo URL</FormLabel>
+                    <FormLabel>URL ảnh</FormLabel>
                     <FormControl>
-                      <Input placeholder="Photo URL (optional)" {...field} />
+                      <Input placeholder="URL ảnh (tùy chọn)" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -139,10 +139,10 @@ export function UserForm({user}: UserFormProps) {
               />
               <div className="flex gap-2">
                 <Button type="submit" disabled={mutation.isPending}>
-                  {mutation.isPending ? 'Saving...' : 'Update User'}
+                  {mutation.isPending ? 'Đang lưu...' : 'Cập nhật người dùng'}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => router.back()}>
-                  Cancel
+                  Hủy
                 </Button>
               </div>
             </form>

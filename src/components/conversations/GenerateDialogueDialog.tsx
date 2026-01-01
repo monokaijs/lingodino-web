@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,24 +7,24 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {Button} from '@/components/ui/button';
-import {Label} from '@/components/ui/label';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {IconSparkles, IconLoader2} from '@tabler/icons-react';
-import {ConversationParticipant, DialogueSentence} from '@/lib/types/models/conversation';
-import {toast} from 'sonner';
-import {GeneratedDialogue} from '@/lib/services/openai';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { IconSparkles, IconLoader2 } from '@tabler/icons-react';
+import { ConversationParticipant, DialogueSentence } from '@/lib/types/models/conversation';
+import { toast } from 'sonner';
+import { GeneratedDialogue } from '@/lib/services/openai';
 
 const generateSchema = z.object({
-  sentenceCount: z.coerce.number().min(2, 'Minimum 2 sentences').max(20, 'Maximum 20 sentences'),
-  level: z.string().min(1, 'Please select a level'),
-  topic: z.string().min(5, 'Topic must be at least 5 characters'),
-  model: z.string().min(1, 'Please select a model'),
+  sentenceCount: z.coerce.number().min(2, 'Tối thiểu 2 câu').max(20, 'Tối đa 20 câu'),
+  level: z.string().min(1, 'Vui lòng chọn trình độ'),
+  topic: z.string().min(5, 'Chủ đề phải có ít nhất 5 ký tự'),
+  model: z.string().min(1, 'Vui lòng chọn mô hình'),
 });
 
 type GenerateFormValues = z.infer<typeof generateSchema>;
@@ -36,7 +36,7 @@ interface GenerateDialogueDialogProps {
   onGenerate: (sentences: DialogueSentence[]) => void;
 }
 
-export function GenerateDialogueDialog({open, onOpenChange, participants, onGenerate}: GenerateDialogueDialogProps) {
+export function GenerateDialogueDialog({ open, onOpenChange, participants, onGenerate }: GenerateDialogueDialogProps) {
   const [isGenerating, setIsGenerating] = useState(false);
 
   const {
@@ -44,7 +44,7 @@ export function GenerateDialogueDialog({open, onOpenChange, participants, onGene
     handleSubmit,
     setValue,
     watch,
-    formState: {errors},
+    formState: { errors },
   } = useForm<GenerateFormValues>({
     resolver: zodResolver(generateSchema) as any,
     defaultValues: {
@@ -75,7 +75,7 @@ export function GenerateDialogueDialog({open, onOpenChange, participants, onGene
 
       if (!response.ok) {
         const json = await response.json();
-        throw new Error(json.message || 'Failed to generate dialogue');
+        throw new Error(json.message || 'Tạo hội thoại thất bại');
       }
 
       const result = await response.json();
@@ -96,7 +96,7 @@ export function GenerateDialogueDialog({open, onOpenChange, participants, onGene
 
       onGenerate(newSentences);
       onOpenChange(false);
-      toast.success('Dialogue generated successfully!');
+      toast.success('Tạo hội thoại thành công!');
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -108,28 +108,28 @@ export function GenerateDialogueDialog({open, onOpenChange, participants, onGene
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Generate with AI</DialogTitle>
-          <DialogDescription>Create a realistic conversation based on your requirements.</DialogDescription>
+          <DialogTitle>Tạo bằng AI</DialogTitle>
+          <DialogDescription>Tạo hội thoại thực tế dựa trên yêu cầu của bạn.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Sentences</Label>
+              <Label>Số câu</Label>
               <Input type="number" {...register('sentenceCount')} min={2} max={20} />
               {errors.sentenceCount && <p className="text-xs text-destructive">{errors.sentenceCount.message}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label>Model</Label>
+              <Label>Mô hình</Label>
               <Select value={model} onValueChange={val => setValue('model', val)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select model" />
+                  <SelectValue placeholder="Chọn mô hình" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gpt-5.1">GPT-5.1 (Latest)</SelectItem>
-                  <SelectItem value="gpt-4o-mini">GPT-4o Mini (Fast)</SelectItem>
-                  <SelectItem value="gpt-4o">GPT-4o (Smart)</SelectItem>
+                  <SelectItem value="gpt-5.1">GPT-5.1 (Mới nhất)</SelectItem>
+                  <SelectItem value="gpt-4o-mini">GPT-4o Mini (Nhanh)</SelectItem>
+                  <SelectItem value="gpt-4o">GPT-4o (Thông minh)</SelectItem>
                   <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo</SelectItem>
                 </SelectContent>
               </Select>
@@ -138,51 +138,51 @@ export function GenerateDialogueDialog({open, onOpenChange, participants, onGene
           </div>
 
           <div className="space-y-2">
-            <Label>Learning Level</Label>
+            <Label>Trình độ học tập</Label>
             <Select value={level} onValueChange={val => setValue('level', val)}>
               <SelectTrigger>
-                <SelectValue placeholder="Select level" />
+                <SelectValue placeholder="Chọn trình độ" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="HSK 1">HSK 1 (Beginner)</SelectItem>
-                <SelectItem value="HSK 2">HSK 2 (Elementary)</SelectItem>
-                <SelectItem value="HSK 3">HSK 3 (Intermediate)</SelectItem>
-                <SelectItem value="HSK 4">HSK 4 (Upper Intermediate)</SelectItem>
-                <SelectItem value="HSK 5">HSK 5 (Advanced)</SelectItem>
-                <SelectItem value="HSK 6">HSK 6 (Proficiency)</SelectItem>
-                <SelectItem value="HSK 7 - 9">HSK 7 - 9 (Mastery)</SelectItem>
+                <SelectItem value="HSK 1">HSK 1 (Sơ cấp)</SelectItem>
+                <SelectItem value="HSK 2">HSK 2 (Sơ trung cấp)</SelectItem>
+                <SelectItem value="HSK 3">HSK 3 (Trung cấp)</SelectItem>
+                <SelectItem value="HSK 4">HSK 4 (Trung cao cấp)</SelectItem>
+                <SelectItem value="HSK 5">HSK 5 (Cao cấp)</SelectItem>
+                <SelectItem value="HSK 6">HSK 6 (Thành thạo)</SelectItem>
+                <SelectItem value="HSK 7 - 9">HSK 7 - 9 (Tinh thông)</SelectItem>
               </SelectContent>
             </Select>
             {errors.level && <p className="text-xs text-destructive">{errors.level.message}</p>}
           </div>
 
           <div className="space-y-2">
-            <Label>Topic / Constraints</Label>
+            <Label>Chủ đề / Yêu cầu</Label>
             <Textarea
               {...register('topic')}
-              placeholder="E.g., Discussing plans for the weekend, ordering food at a restaurant..."
+              placeholder="Ví dụ: Thảo luận kế hoạch cuối tuần, gọi món tại nhà hàng..."
               className="min-h-[100px]"
             />
             {errors.topic && <p className="text-xs text-destructive">{errors.topic.message}</p>}
             <p className="text-xs text-muted-foreground">
-              Describe the scenario, specific vocabulary to use, or the relationship between speakers.
+              Mô tả tình huống, từ vựng cụ thể cần dùng, hoặc mối quan hệ giữa những người nói.
             </p>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" disabled={isGenerating}>
               {isGenerating ? (
                 <>
                   <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Generating...
+                  Đang tạo...
                 </>
               ) : (
                 <>
                   <IconSparkles className="mr-2 h-4 w-4" />
-                  Generate
+                  Tạo
                 </>
               )}
             </Button>

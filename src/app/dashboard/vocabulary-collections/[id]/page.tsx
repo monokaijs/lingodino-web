@@ -1,22 +1,22 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {IconArrowLeft, IconDownload, IconEye, IconFileUpload, IconLink} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { IconArrowLeft, IconDownload, IconEye, IconFileUpload, IconLink } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
-import {useParams} from 'next/navigation';
-import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
-import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {Tabs, TabsContent, TabsList, TabsTrigger} from '@/components/ui/tabs';
-import {toast} from 'sonner';
-import {VocabularyCollection, VocabularyItem} from '@/lib/types/models/vocabulary-collection';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
-import {Badge} from '@/components/ui/badge';
-import {VocabularyDetailDialog} from './vocabulary-detail-dialog';
+import { useState } from 'react';
+import { useParams } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner';
+import { VocabularyCollection, VocabularyItem } from '@/lib/types/models/vocabulary-collection';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { VocabularyDetailDialog } from './vocabulary-detail-dialog';
 
 interface ApiResponse<T> {
   data: T;
@@ -39,10 +39,10 @@ async function fetchItems(collectionId: string): Promise<VocabularyItem[]> {
   return json.data;
 }
 
-async function importVocabulary(id: string, payload: {url?: string; data?: any}): Promise<{count: number}> {
+async function importVocabulary(id: string, payload: { url?: string; data?: any }): Promise<{ count: number }> {
   const res = await fetch(`/api/vocabulary-collections/${id}/import`, {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   });
   const json = await res.json();
@@ -63,22 +63,22 @@ export default function CollectionDetailPage() {
 
   const [selectedItem, setSelectedItem] = useState<VocabularyItem | null>(null);
 
-  const {data: collection} = useQuery({
+  const { data: collection } = useQuery({
     queryKey: ['vocabulary-collection', collectionId],
     queryFn: () => fetchCollection(collectionId),
   });
 
-  const {data: items, isLoading} = useQuery({
+  const { data: items, isLoading } = useQuery({
     queryKey: ['vocabulary-items', collectionId],
     queryFn: () => fetchItems(collectionId),
   });
 
   const importMutation = useMutation({
-    mutationFn: (payload: {url?: string; data?: any}) => importVocabulary(collectionId, payload),
+    mutationFn: (payload: { url?: string; data?: any }) => importVocabulary(collectionId, payload),
     onSuccess: data => {
-      queryClient.invalidateQueries({queryKey: ['vocabulary-collection', collectionId]});
-      queryClient.invalidateQueries({queryKey: ['vocabulary-items', collectionId]});
-      toast.success(`Successfully imported ${data.count} vocabulary items`);
+      queryClient.invalidateQueries({ queryKey: ['vocabulary-collection', collectionId] });
+      queryClient.invalidateQueries({ queryKey: ['vocabulary-items', collectionId] });
+      toast.success(`Đã nhập thành công ${data.count} mục từ vựng`);
       setImportDialogOpen(false);
       setImportUrl('');
       setImportFile(null);
@@ -91,13 +91,13 @@ export default function CollectionDetailPage() {
   const handleImport = async () => {
     if (importTab === 'url') {
       if (!importUrl.trim()) {
-        toast.error('Please enter a URL');
+        toast.error('Vui lòng nhập URL');
         return;
       }
-      importMutation.mutate({url: importUrl});
+      importMutation.mutate({ url: importUrl });
     } else {
       if (!importFile) {
-        toast.error('Please select a file');
+        toast.error('Vui lòng chọn tệp');
         return;
       }
 
@@ -105,12 +105,12 @@ export default function CollectionDetailPage() {
         const text = await importFile.text();
         const json = JSON.parse(text);
         if (!Array.isArray(json)) {
-          toast.error('Invalid JSON: Root must be an array');
+          toast.error('JSON không hợp lệ: Gốc phải là một mảng');
           return;
         }
-        importMutation.mutate({data: json});
+        importMutation.mutate({ data: json });
       } catch (e) {
-        toast.error('Failed to parse JSON file');
+        toast.error('Không thể phân tích tệp JSON');
       }
     }
   };
@@ -140,26 +140,26 @@ export default function CollectionDetailPage() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>Vocabulary Items</CardTitle>
-            <CardDescription>{collection?.itemCount || 0} items in this collection</CardDescription>
+            <CardTitle>Mục từ vựng</CardTitle>
+            <CardDescription>{collection?.itemCount || 0} mục trong bộ sưu tập này</CardDescription>
           </div>
           <Button onClick={() => setImportDialogOpen(true)}>
             <IconDownload className="mr-2 h-4 w-4" />
-            Import from JSON
+            Nhập từ JSON
           </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Simplified</TableHead>
-                  <TableHead>Pinyin</TableHead>
-                  <TableHead>Radical</TableHead>
-                  <TableHead>Meaning</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>Giản thể</TableHead>
+                  <TableHead>Bính âm</TableHead>
+                  <TableHead>Bộ thủ</TableHead>
+                  <TableHead>Nghĩa</TableHead>
+                  <TableHead className="w-[100px]">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -177,7 +177,7 @@ export default function CollectionDetailPage() {
                         ))}
                         {(item.meanings?.length || 0) > 2 && (
                           <Badge variant="outline" className="text-xs">
-                            +{item.meanings!.length - 2} more
+                            +{item.meanings!.length - 2} thêm
                           </Badge>
                         )}
                       </div>
@@ -192,7 +192,7 @@ export default function CollectionDetailPage() {
                 {items?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-8">
-                      No vocabulary items yet. Import from JSON to get started.
+                      Chưa có mục từ vựng nào. Nhập từ JSON để bắt đầu.
                     </TableCell>
                   </TableRow>
                 )}
@@ -212,7 +212,7 @@ export default function CollectionDetailPage() {
       <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
         <DialogContent className="max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Import Vocabulary</DialogTitle>
+            <DialogTitle>Nhập từ vựng</DialogTitle>
           </DialogHeader>
 
           <Tabs value={importTab} onValueChange={setImportTab}>
@@ -221,43 +221,43 @@ export default function CollectionDetailPage() {
                 <IconLink className="mr-2 h-4 w-4" /> URL
               </TabsTrigger>
               <TabsTrigger value="file">
-                <IconFileUpload className="mr-2 h-4 w-4" /> File
+                <IconFileUpload className="mr-2 h-4 w-4" /> Tệp
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="url" className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="import-url">JSON URL</Label>
+                <Label htmlFor="import-url">URL JSON</Label>
                 <Input
                   id="import-url"
                   placeholder="https://example.com/vocabulary.json"
                   value={importUrl}
                   onChange={e => setImportUrl(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">Enter a URL to a JSON file containing vocabulary data.</p>
+                <p className="text-xs text-muted-foreground">Nhập URL đến tệp JSON chứa dữ liệu từ vựng.</p>
               </div>
             </TabsContent>
 
             <TabsContent value="file" className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="import-file">Upload JSON File</Label>
+                <Label htmlFor="import-file">Tải tệp JSON lên</Label>
                 <Input
                   id="import-file"
                   type="file"
                   accept=".json"
                   onChange={e => setImportFile(e.target.files?.[0] || null)}
                 />
-                <p className="text-xs text-muted-foreground">Select a JSON file from your computer.</p>
+                <p className="text-xs text-muted-foreground">Chọn tệp JSON từ máy tính của bạn.</p>
               </div>
             </TabsContent>
           </Tabs>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setImportDialogOpen(false)}>
-              Cancel
+              Hủy
             </Button>
             <Button onClick={handleImport} disabled={importMutation.isPending}>
-              {importMutation.isPending ? 'Importing...' : 'Import'}
+              {importMutation.isPending ? 'Đang nhập...' : 'Nhập'}
             </Button>
           </DialogFooter>
         </DialogContent>

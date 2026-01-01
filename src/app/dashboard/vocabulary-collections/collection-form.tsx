@@ -1,20 +1,20 @@
 'use client';
 
-import {useForm} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {toast} from 'sonner';
-import {VocabularyCollection} from '@/lib/types/models/vocabulary-collection';
-import {useState} from 'react';
-import {IconUpload} from '@tabler/icons-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { VocabularyCollection } from '@/lib/types/models/vocabulary-collection';
+import { useState } from 'react';
+import { IconUpload } from '@tabler/icons-react';
 
 const collectionSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, 'Tên là bắt buộc'),
   description: z.string().optional(),
   photo: z.string().optional(),
 });
@@ -29,7 +29,7 @@ interface CollectionFormProps {
 async function createCollection(data: CollectionFormData): Promise<VocabularyCollection> {
   const res = await fetch('/api/vocabulary-collections', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -40,7 +40,7 @@ async function createCollection(data: CollectionFormData): Promise<VocabularyCol
 async function updateCollection(id: string, data: CollectionFormData): Promise<VocabularyCollection> {
   const res = await fetch(`/api/vocabulary-collections/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -60,7 +60,7 @@ async function uploadFile(file: File): Promise<string> {
   return json.data.url;
 }
 
-export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
+export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
   const queryClient = useQueryClient();
   const isEditing = !!collection;
   const [uploading, setUploading] = useState(false);
@@ -78,8 +78,8 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
     mutationFn: (data: CollectionFormData) =>
       isEditing ? updateCollection(collection._id, data) : createCollection(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['vocabulary-collections']});
-      toast.success(isEditing ? 'Collection updated successfully' : 'Collection created successfully');
+      queryClient.invalidateQueries({ queryKey: ['vocabulary-collections'] });
+      toast.success(isEditing ? 'Cập nhật bộ từ vựng thành công' : 'Tạo bộ từ vựng thành công');
       onSuccess();
     },
     onError: (error: Error) => {
@@ -99,9 +99,9 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
       setUploading(true);
       const url = await uploadFile(file);
       form.setValue('photo', url);
-      toast.success('Photo uploaded successfully');
+      toast.success('Tải ảnh lên thành công');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to upload photo');
+      toast.error(error.message || 'Tải ảnh thất bại');
     } finally {
       setUploading(false);
     }
@@ -115,11 +115,11 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
         <FormField
           control={form.control}
           name="name"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>Tên</FormLabel>
               <FormControl>
-                <Input placeholder="Collection name" {...field} />
+                <Input placeholder="Tên bộ từ vựng" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -128,11 +128,11 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
         <FormField
           control={form.control}
           name="description"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Mô tả</FormLabel>
               <FormControl>
-                <Textarea placeholder="Collection description" {...field} />
+                <Textarea placeholder="Mô tả bộ từ vựng" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -141,9 +141,9 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
         <FormField
           control={form.control}
           name="photo"
-          render={({field}) => (
+          render={({ field }) => (
             <FormItem>
-              <FormLabel>Photo</FormLabel>
+              <FormLabel>Ảnh</FormLabel>
               <FormControl>
                 <div className="space-y-2">
                   {photoUrl && <img src={photoUrl} alt="Collection" className="w-20 h-20 object-cover rounded-md" />}
@@ -163,10 +163,10 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
                       disabled={uploading}
                     >
                       <IconUpload className="mr-2 h-4 w-4" />
-                      {uploading ? 'Uploading...' : 'Upload Photo'}
+                      {uploading ? 'Đang tải lên...' : 'Tải ảnh lên'}
                     </Button>
                   </div>
-                  <Input placeholder="Or enter photo URL" {...field} />
+                  <Input placeholder="Hoặc nhập URL ảnh" {...field} />
                 </div>
               </FormControl>
               <FormMessage />
@@ -175,7 +175,7 @@ export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
         />
         <div className="flex gap-2 justify-end">
           <Button type="submit" disabled={mutation.isPending || uploading}>
-            {mutation.isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+            {mutation.isPending ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo'}
           </Button>
         </div>
       </form>

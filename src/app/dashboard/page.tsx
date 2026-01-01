@@ -1,38 +1,38 @@
 'use client';
 
-import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
-import {IconBooks, IconVocabulary, IconLanguage, IconHeadphones, IconArrowRight} from '@tabler/icons-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { IconBooks, IconVocabulary, IconLanguage, IconHeadphones, IconArrowRight } from '@tabler/icons-react';
 import Link from 'next/link';
-import {Button} from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 
 const features = [
   {
-    title: 'Courses',
-    description: 'Manage language courses and lessons',
+    title: 'Khóa học',
+    description: 'Quản lý các khóa học và bài học',
     icon: IconBooks,
     href: '/dashboard/courses',
     color: 'text-blue-500',
     bgColor: 'bg-blue-500/10',
   },
   {
-    title: 'Vocabulary',
-    description: 'Build vocabulary collections and word lists',
+    title: 'Từ vựng',
+    description: 'Xây dựng bộ từ vựng và danh sách từ',
     icon: IconVocabulary,
     href: '/dashboard/vocabulary-collections',
     color: 'text-green-500',
     bgColor: 'bg-green-500/10',
   },
   {
-    title: 'Grammar',
-    description: 'Create grammar rules and examples',
+    title: 'Ngữ pháp',
+    description: 'Tạo quy tắc ngữ pháp và ví dụ',
     icon: IconLanguage,
     href: '/dashboard/grammar-collections',
     color: 'text-purple-500',
     bgColor: 'bg-purple-500/10',
   },
   {
-    title: 'Audio Conversations',
-    description: 'Generate AI dialogue with ElevenLabs',
+    title: 'Hội thoại âm thanh',
+    description: 'Tạo hội thoại AI với ElevenLabs',
     icon: IconHeadphones,
     href: '/dashboard/conversations',
     color: 'text-orange-500',
@@ -44,7 +44,7 @@ export default function DashboardPage() {
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">Bảng điều khiển</h1>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -60,7 +60,7 @@ export default function DashboardPage() {
               <CardDescription className="mb-4">{feature.description}</CardDescription>
               <Button variant="outline" size="sm" asChild className="w-full">
                 <Link href={feature.href}>
-                  Open
+                  Mở
                   <IconArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
@@ -72,13 +72,13 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Welcome to LingoDino Admin</CardTitle>
-            <CardDescription>Manage your language learning content from this central hub.</CardDescription>
+            <CardTitle>Chào mừng đến với quản trị LingoDino</CardTitle>
+            <CardDescription>Quản lý nội dung học ngôn ngữ của bạn từ trung tâm này.</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Use the sidebar to navigate to different sections. You can manage users, create courses, organize
-              vocabulary, and generate AI audio content.
+              Sử dụng thanh bên để điều hướng đến các mục khác nhau. Bạn có thể quản lý người dùng, tạo khóa học, tổ chức
+              từ vựng và tạo nội dung âm thanh AI.
             </p>
           </CardContent>
         </Card>

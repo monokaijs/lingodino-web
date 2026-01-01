@@ -17,9 +17,9 @@ import {
   IconHeadphones,
 } from '@tabler/icons-react';
 
-import {NavMain} from '@/components/nav-main';
-import {NavSecondary} from '@/components/nav-secondary';
-import {NavUser} from '@/components/nav-user';
+import { NavMain } from '@/components/nav-main';
+import { NavSecondary } from '@/components/nav-secondary';
+import { NavUser } from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -41,61 +41,61 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 const data = {
   navMain: [
     {
-      title: 'Dashboard',
+      title: 'Bảng điều khiển',
       url: '/dashboard',
       icon: IconDashboard,
     },
     {
-      title: 'Courses',
+      title: 'Khóa học',
       url: '/dashboard/courses',
       icon: IconBooks,
     },
     {
-      title: 'Exams',
+      title: 'Bài kiểm tra',
       url: '/dashboard/exams',
       icon: IconClipboardList,
     },
     {
-      title: 'Vocabulary',
+      title: 'Từ vựng',
       url: '/dashboard/vocabulary-collections',
       icon: IconVocabulary,
     },
     {
-      title: 'Grammar',
+      title: 'Ngữ pháp',
       url: '/dashboard/grammar-collections',
       icon: IconLanguage,
     },
     {
-      title: 'Audio Conversations',
+      title: 'Hội thoại âm thanh',
       url: '/dashboard/conversations',
       icon: IconHeadphones,
     },
     {
-      title: 'Users',
+      title: 'Người dùng',
       url: '/dashboard/users',
       icon: IconUsers,
     },
   ],
   navSecondary: [
     {
-      title: 'Settings',
+      title: 'Cài đặt',
       url: '#',
       icon: IconSettings,
     },
     {
-      title: 'Get Help',
+      title: 'Trợ giúp',
       url: '#',
       icon: IconHelp,
     },
     {
-      title: 'Search',
+      title: 'Tìm kiếm',
       url: '#',
       icon: IconSearch,
     },
   ],
 };
 
-export function AppSidebar({user, ...props}: AppSidebarProps) {
+export function AppSidebar({ user, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>

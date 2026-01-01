@@ -1,22 +1,22 @@
 'use client';
 
-import {useForm, useFieldArray} from 'react-hook-form';
-import {zodResolver} from '@hookform/resolvers/zod';
-import {z} from 'zod';
-import {Button} from '@/components/ui/button';
-import {Input} from '@/components/ui/input';
-import {Textarea} from '@/components/ui/textarea';
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {Checkbox} from '@/components/ui/checkbox';
-import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {toast} from 'sonner';
-import {ExamQuestion, ExamQuestionType, ExamQuestionOption} from '@/lib/types/models/exam';
-import {Attachment} from '@/lib/types/models/attachment';
-import {useEffect, useRef, useState} from 'react';
-import {IconPlus, IconTrash, IconUpload, IconX} from '@tabler/icons-react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { ExamQuestion, ExamQuestionType, ExamQuestionOption } from '@/lib/types/models/exam';
+import { Attachment } from '@/lib/types/models/attachment';
+import { useEffect, useRef, useState } from 'react';
+import { IconPlus, IconTrash, IconUpload, IconX } from '@tabler/icons-react';
 
 const optionSchema = z.object({
   text: z.string(),
@@ -29,20 +29,20 @@ const typesWithOptionsSet = new Set([ExamQuestionType.MultipleChoice, ExamQuesti
 const questionSchema = z
   .object({
     type: z.enum(ExamQuestionType),
-    question: z.string().min(1, 'Question is required'),
+    question: z.string().min(1, 'Câu hỏi là bắt buộc'),
     answer: z.string().optional(),
     options: z.array(optionSchema).optional(),
   })
   .superRefine((data, ctx) => {
     if (typesWithOptionsSet.has(data.type)) {
       if (!data.options || data.options.length === 0) {
-        ctx.addIssue({code: z.ZodIssueCode.custom, message: 'At least one option is required', path: ['options']});
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'Cần ít nhất một tùy chọn', path: ['options'] });
       } else {
         data.options.forEach((opt, i) => {
           if (!opt.text || opt.text.trim() === '') {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
-              message: 'Option text is required',
+              message: 'Nội dung tùy chọn là bắt buộc',
               path: ['options', i, 'text'],
             });
           }
@@ -54,14 +54,14 @@ const questionSchema = z
 type QuestionFormData = z.infer<typeof questionSchema>;
 
 export const questionTypeLabels: Record<ExamQuestionType, string> = {
-  [ExamQuestionType.MultipleChoice]: 'Multiple Choice',
-  [ExamQuestionType.TrueFalse]: 'True / False',
-  [ExamQuestionType.ShortAnswer]: 'Short Answer',
-  [ExamQuestionType.LongAnswer]: 'Long Answer',
-  [ExamQuestionType.ListenAndRepeat]: 'Listen and Repeat',
-  [ExamQuestionType.ListenAndAnswer]: 'Listen and Answer',
-  [ExamQuestionType.ListenAndWrite]: 'Listen and Write',
-  [ExamQuestionType.ListenAndChoose]: 'Listen and Choose',
+  [ExamQuestionType.MultipleChoice]: 'Trắc nghiệm',
+  [ExamQuestionType.TrueFalse]: 'Đúng / Sai',
+  [ExamQuestionType.ShortAnswer]: 'Trả lời ngắn',
+  [ExamQuestionType.LongAnswer]: 'Trả lời dài',
+  [ExamQuestionType.ListenAndRepeat]: 'Nghe và Lặp lại',
+  [ExamQuestionType.ListenAndAnswer]: 'Nghe và Trả lời',
+  [ExamQuestionType.ListenAndWrite]: 'Nghe và Viết',
+  [ExamQuestionType.ListenAndChoose]: 'Nghe và Chọn',
 };
 
 const typesWithoutAnswer = [
@@ -80,7 +80,7 @@ interface QuestionDialogProps {
 async function uploadFile(file: File): Promise<Attachment> {
   const formData = new FormData();
   formData.append('file', file);
-  const res = await fetch('/api/upload', {method: 'POST', body: formData});
+  const res = await fetch('/api/upload', { method: 'POST', body: formData });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
   return json.data;
@@ -89,8 +89,8 @@ async function uploadFile(file: File): Promise<Attachment> {
 async function createQuestion(examId: string, data: any): Promise<ExamQuestion> {
   const res = await fetch('/api/questions', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({...data, examId}),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...data, examId }),
   });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
@@ -100,7 +100,7 @@ async function createQuestion(examId: string, data: any): Promise<ExamQuestion> 
 async function updateQuestion(id: string, data: any): Promise<ExamQuestion> {
   const res = await fetch(`/api/questions/${id}`, {
     method: 'PUT',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
   const json = await res.json();
@@ -142,13 +142,13 @@ function OptionRow({
       <FormField
         control={form.control}
         name={`options.${index}.isCorrect`}
-        render={({field}) => <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-2" />}
+        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-2" />}
       />
       <div className="flex-1 space-y-2">
         <FormField
           control={form.control}
           name={`options.${index}.text`}
-          render={({field}) => <Input placeholder={`Option ${index + 1}`} {...field} />}
+          render={({ field }) => <Input placeholder={`Tùy chọn ${index + 1}`} {...field} />}
         />
         <div className="flex items-center gap-2">
           <input type="file" ref={fileInputRef} onChange={handleOptionFileUpload} className="hidden" />
@@ -160,7 +160,7 @@ function OptionRow({
             disabled={uploading}
           >
             <IconUpload className="h-3 w-3 mr-1" />
-            {uploading ? '...' : 'File'}
+            {uploading ? '...' : 'Tệp'}
           </Button>
           {optionFile && (
             <div className="flex items-center gap-1 text-xs">
@@ -184,7 +184,7 @@ function OptionRow({
   );
 }
 
-export function QuestionDialog({open, onOpenChange, examId, question}: QuestionDialogProps) {
+export function QuestionDialog({ open, onOpenChange, examId, question }: QuestionDialogProps) {
   const queryClient = useQueryClient();
   const isEditing = !!question;
   const [questionFile, setQuestionFile] = useState<Attachment | null>(null);
@@ -197,11 +197,11 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
       type: ExamQuestionType.MultipleChoice,
       question: '',
       answer: '',
-      options: [{text: '', isCorrect: false}],
+      options: [{ text: '', isCorrect: false }],
     },
   });
 
-  const {fields, append, remove} = useFieldArray({control: form.control, name: 'options'});
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'options' });
   const watchedType = form.watch('type');
 
   useEffect(() => {
@@ -210,7 +210,7 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
         type: question.type,
         question: question.question,
         answer: question.answer,
-        options: question.options?.map(o => ({text: o.text, file: o.file, isCorrect: o.isCorrect})) || [],
+        options: question.options?.map(o => ({ text: o.text, file: o.file, isCorrect: o.isCorrect })) || [],
       });
       setQuestionFile(question.file || null);
     } else {
@@ -218,7 +218,7 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
         type: ExamQuestionType.MultipleChoice,
         question: '',
         answer: '',
-        options: [{text: '', isCorrect: false}],
+        options: [{ text: '', isCorrect: false }],
       });
       setQuestionFile(null);
     }
@@ -252,8 +252,8 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
       return isEditing ? updateQuestion(question._id, payload) : createQuestion(examId, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['questions', examId]});
-      toast.success(isEditing ? 'Question updated' : 'Question created');
+      queryClient.invalidateQueries({ queryKey: ['questions', examId] });
+      toast.success(isEditing ? 'Đã cập nhật câu hỏi' : 'Đã tạo câu hỏi');
       onOpenChange(false);
     },
     onError: (error: Error) => toast.error(error.message),
@@ -266,20 +266,20 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? 'Edit Question' : 'New Question'}</DialogTitle>
+          <DialogTitle>{isEditing ? 'Chỉnh sửa câu hỏi' : 'Thêm câu hỏi mới'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit, onError)} className="space-y-4">
             <FormField
               control={form.control}
               name="type"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Type</FormLabel>
+                  <FormLabel>Loại</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
+                        <SelectValue placeholder="Chọn loại" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -297,18 +297,18 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
             <FormField
               control={form.control}
               name="question"
-              render={({field}) => (
+              render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Question</FormLabel>
+                  <FormLabel>Câu hỏi</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter question" {...field} />
+                    <Textarea placeholder="Nhập câu hỏi" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
             <div>
-              <FormLabel>Attachment</FormLabel>
+              <FormLabel>Tệp đính kèm</FormLabel>
               <div className="flex items-center gap-2 mt-1">
                 <input type="file" ref={fileInputRef} onChange={handleFileUpload} className="hidden" />
                 <Button
@@ -319,7 +319,7 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
                   disabled={uploading}
                 >
                   <IconUpload className="h-4 w-4 mr-1" />
-                  {uploading ? 'Uploading...' : 'Upload'}
+                  {uploading ? 'Đang tải lên...' : 'Tải lên'}
                 </Button>
                 {questionFile && (
                   <div className="flex items-center gap-1 text-sm">
@@ -334,15 +334,15 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
             {typesWithOptionsSet.has(watchedType) && (
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <FormLabel>Options</FormLabel>
+                  <FormLabel>Tùy chọn</FormLabel>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => append({text: '', isCorrect: false})}
+                    onClick={() => append({ text: '', isCorrect: false })}
                   >
                     <IconPlus className="h-4 w-4 mr-1" />
-                    Add
+                    Thêm
                   </Button>
                 </div>
                 <div className="space-y-2">
@@ -362,9 +362,9 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
               <FormField
                 control={form.control}
                 name="answer"
-                render={({field}) => (
+                render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Answer</FormLabel>
+                    <FormLabel>Câu trả lời</FormLabel>
                     {watchedType === ExamQuestionType.TrueFalse ? (
                       <FormControl>
                         <ToggleGroup
@@ -374,13 +374,13 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
                           variant="outline"
                           className="justify-start"
                         >
-                          <ToggleGroupItem value="true">True</ToggleGroupItem>
-                          <ToggleGroupItem value="false">False</ToggleGroupItem>
+                          <ToggleGroupItem value="true">Đúng</ToggleGroupItem>
+                          <ToggleGroupItem value="false">Sai</ToggleGroupItem>
                         </ToggleGroup>
                       </FormControl>
                     ) : (
                       <FormControl>
-                        <Input placeholder="Correct answer" {...field} />
+                        <Input placeholder="Câu trả lời đúng" {...field} />
                       </FormControl>
                     )}
                     <FormMessage />
@@ -390,10 +390,10 @@ export function QuestionDialog({open, onOpenChange, examId, question}: QuestionD
             )}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
+                Hủy
               </Button>
               <Button type="submit" disabled={mutation.isPending}>
-                {mutation.isPending ? 'Saving...' : isEditing ? 'Update' : 'Create'}
+                {mutation.isPending ? 'Đang lưu...' : isEditing ? 'Cập nhật' : 'Tạo'}
               </Button>
             </div>
           </form>

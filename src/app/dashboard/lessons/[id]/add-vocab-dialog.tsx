@@ -1,12 +1,12 @@
 'use client';
 
-import {useState} from 'react';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {Input} from '@/components/ui/input';
-import {Button} from '@/components/ui/button';
-import {Checkbox} from '@/components/ui/checkbox';
-import {useQuery} from '@tanstack/react-query';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useQuery } from '@tanstack/react-query';
 
 async function fetchVocabCollections() {
   const res = await fetch('/api/vocabulary-collections?limit=100');
@@ -27,18 +27,18 @@ interface AddVocabDialogProps {
   onAdd: (selectedIds: string[]) => void;
 }
 
-export function AddVocabDialog({open, onOpenChange, onAdd}: AddVocabDialogProps) {
+export function AddVocabDialog({ open, onOpenChange, onAdd }: AddVocabDialogProps) {
   const [selectedCol, setSelectedCol] = useState<string>('');
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  const {data: collections = []} = useQuery({
+  const { data: collections = [] } = useQuery({
     queryKey: ['vocab-cols'],
     queryFn: fetchVocabCollections,
     enabled: open,
   });
 
-  const {data: items = []} = useQuery({
+  const { data: items = [] } = useQuery({
     queryKey: ['vocab-items', selectedCol, search],
     queryFn: () => fetchVocabItems(selectedCol, search),
     enabled: !!selectedCol,
@@ -58,13 +58,13 @@ export function AddVocabDialog({open, onOpenChange, onAdd}: AddVocabDialogProps)
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Vocabulary</DialogTitle>
+          <DialogTitle>Thêm từ vựng</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div className="flex gap-2">
             <Select value={selectedCol} onValueChange={setSelectedCol}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select Collection" />
+                <SelectValue placeholder="Chọn bộ từ vựng" />
               </SelectTrigger>
               <SelectContent>
                 {collections.map((c: any) => (
@@ -75,7 +75,7 @@ export function AddVocabDialog({open, onOpenChange, onAdd}: AddVocabDialogProps)
               </SelectContent>
             </Select>
             <Input
-              placeholder="Search..."
+              placeholder="Tìm kiếm..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="flex-1"
@@ -97,15 +97,15 @@ export function AddVocabDialog({open, onOpenChange, onAdd}: AddVocabDialogProps)
                 </label>
               </div>
             ))}
-            {items.length === 0 && <div className="text-center text-muted-foreground py-8">No items found</div>}
+            {items.length === 0 && <div className="text-center text-muted-foreground py-8">Không tìm thấy mục nào</div>}
           </div>
 
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
+              Hủy
             </Button>
             <Button onClick={handleAdd} disabled={selectedIds.length === 0}>
-              Add Selected ({selectedIds.length})
+              Thêm đã chọn ({selectedIds.length})
             </Button>
           </div>
         </div>

@@ -1,9 +1,9 @@
 'use client';
 
-import {IconDotsVertical, IconLogout, IconUserCircle} from '@tabler/icons-react';
-import {signOut} from 'next-auth/react';
+import { IconDotsVertical, IconLogout, IconUserCircle } from '@tabler/icons-react';
+import { signOut } from 'next-auth/react';
 
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar} from '@/components/ui/sidebar';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar';
 
 function getInitials(name: string): string {
   return (
@@ -34,10 +34,10 @@ export function NavUser({
     avatar: string;
   };
 }) {
-  const {isMobile} = useSidebar();
+  const { isMobile } = useSidebar();
 
   const handleLogout = () => {
-    signOut({callbackUrl: '/login'});
+    signOut({ callbackUrl: '/login' });
   };
 
   return (
@@ -81,12 +81,12 @@ export function NavUser({
             <DropdownMenuSeparator />
             <DropdownMenuItem>
               <IconUserCircle />
-              Account
+              Tài khoản
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
-              Log out
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

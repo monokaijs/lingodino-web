@@ -1,12 +1,12 @@
 'use client';
 
-import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
-import {Button} from '@/components/ui/button';
-import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
-import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
-import {IconPlus, IconEdit, IconTrash} from '@tabler/icons-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react';
 import Link from 'next/link';
-import {useState} from 'react';
+import { useState } from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,11 +17,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
-import {toast} from 'sonner';
-import {GrammarCollection} from '@/lib/types/models/grammar';
-import {CollectionForm} from './collection-form';
-import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { toast } from 'sonner';
+import { GrammarCollection } from '@/lib/types/models/grammar';
+import { CollectionForm } from './collection-form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ApiResponse<T> {
   data: T;
@@ -38,7 +38,7 @@ async function fetchCollections(): Promise<GrammarCollection[]> {
 }
 
 async function deleteCollection(id: string): Promise<void> {
-  const res = await fetch(`/api/grammar-collections/${id}`, {method: 'DELETE'});
+  const res = await fetch(`/api/grammar-collections/${id}`, { method: 'DELETE' });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
 }
@@ -49,7 +49,7 @@ export default function GrammarCollectionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<GrammarCollection | null>(null);
 
-  const {data: collections, isLoading} = useQuery({
+  const { data: collections, isLoading } = useQuery({
     queryKey: ['grammar-collections'],
     queryFn: fetchCollections,
   });
@@ -57,8 +57,8 @@ export default function GrammarCollectionsPage() {
   const deleteMutation = useMutation({
     mutationFn: deleteCollection,
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['grammar-collections']});
-      toast.success('Collection deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['grammar-collections'] });
+      toast.success('Xóa bộ ngữ pháp thành công');
       setDeleteId(null);
     },
     onError: (error: Error) => {
@@ -85,23 +85,23 @@ export default function GrammarCollectionsPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Grammar Collections</CardTitle>
+          <CardTitle>Bộ ngữ pháp</CardTitle>
           <Button onClick={handleCreate}>
             <IconPlus className="mr-2 h-4 w-4" />
-            Add Collection
+            Thêm bộ mới
           </Button>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8">Loading...</div>
+            <div className="text-center py-8">Đang tải...</div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Collection</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Items</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
+                  <TableHead>Bộ</TableHead>
+                  <TableHead>Mô tả</TableHead>
+                  <TableHead>Số lượng</TableHead>
+                  <TableHead className="w-[100px]">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -138,7 +138,7 @@ export default function GrammarCollectionsPage() {
                 {collections?.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center py-8">
-                      No collections found
+                      Không tìm thấy bộ nào
                     </TableCell>
                   </TableRow>
                 )}
@@ -151,7 +151,7 @@ export default function GrammarCollectionsPage() {
       <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingCollection ? 'Edit Collection' : 'New Collection'}</DialogTitle>
+            <DialogTitle>{editingCollection ? 'Chỉnh sửa bộ ngữ pháp' : 'Thêm bộ mới'}</DialogTitle>
           </DialogHeader>
           <CollectionForm collection={editingCollection} onSuccess={handleDialogClose} />
         </DialogContent>
@@ -160,15 +160,14 @@ export default function GrammarCollectionsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Collection</AlertDialogTitle>
+            <AlertDialogTitle>Xóa bộ ngữ pháp</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this collection? All grammar items will be deleted. This action cannot be
-              undone.
+              Bạn có chắc chắn muốn xóa bộ này không? Tất cả mục ngữ pháp sẽ bị xóa. Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Xóa</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

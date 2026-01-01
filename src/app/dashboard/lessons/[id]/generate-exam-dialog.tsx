@@ -1,4 +1,4 @@
-import {Button} from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -7,15 +7,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {Input} from '@/components/ui/input';
-import {Label} from '@/components/ui/label';
-import {Textarea} from '@/components/ui/textarea';
-import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
-import {useState} from 'react';
-import {IconWand, IconLoader2} from '@tabler/icons-react';
-import {toast} from 'sonner';
-import {useMutation, useQueryClient} from '@tanstack/react-query';
-import {GenerateExamRequest} from '@/lib/types/api/generate-exam';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useState } from 'react';
+import { IconWand, IconLoader2 } from '@tabler/icons-react';
+import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { GenerateExamRequest } from '@/lib/types/api/generate-exam';
 
 interface GenerateExamDialogProps {
   open: boolean;
@@ -24,9 +24,9 @@ interface GenerateExamDialogProps {
   lessonName?: string;
 }
 
-export function GenerateExamDialog({open, onOpenChange, lessonId, lessonName}: GenerateExamDialogProps) {
+export function GenerateExamDialog({ open, onOpenChange, lessonId, lessonName }: GenerateExamDialogProps) {
   const queryClient = useQueryClient();
-  const [name, setName] = useState(`Exam for ${lessonName || 'Lesson'}`);
+  const [name, setName] = useState(`Bài kiểm tra cho ${lessonName || 'Bài học'}`);
   const [instructions, setInstructions] = useState('');
   const [counts, setCounts] = useState({
     multipleChoice: 5,
@@ -43,7 +43,7 @@ export function GenerateExamDialog({open, onOpenChange, lessonId, lessonName}: G
     mutationFn: async (data: GenerateExamRequest) => {
       const res = await fetch('/api/generate-exam', {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       const json = await res.json();
@@ -51,8 +51,8 @@ export function GenerateExamDialog({open, onOpenChange, lessonId, lessonName}: G
       return json.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({queryKey: ['exams', lessonId]});
-      toast.success('Exam generated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['exams', lessonId] });
+      toast.success('Tạo bài kiểm tra thành công!');
       onOpenChange(false);
     },
     onError: err => {
@@ -75,75 +75,75 @@ export function GenerateExamDialog({open, onOpenChange, lessonId, lessonName}: G
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <IconWand className="h-5 w-5 text-purple-500" />
-            Generate Exam with AI
+            Tạo bài kiểm tra bằng AI
           </DialogTitle>
           <DialogDescription>
-            Automatically create an exam based on this lesson's content (Conversation, Vocabulary, Grammar).
+            Tự động tạo bài kiểm tra dựa trên nội dung bài học này (Hội thoại, Từ vựng, Ngữ pháp).
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="name">Exam Name</Label>
+            <Label htmlFor="name">Tên bài kiểm tra</Label>
             <Input id="name" value={name} onChange={e => setName(e.target.value)} />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="instructions">Custom Instructions (Optional)</Label>
+            <Label htmlFor="instructions">Hướng dẫn tùy chỉnh (Tùy chọn)</Label>
             <Textarea
               id="instructions"
-              placeholder="E.g., Focus on HSK 3 vocabulary, ensure questions are tricky..."
+              placeholder="Ví dụ: Tập trung vào từ vựng HSK 3, đảm bảo câu hỏi khó..."
               value={instructions}
               onChange={e => setInstructions(e.target.value)}
             />
           </div>
 
           <div className="grid gap-3">
-            <Label>Question Distribution (Total: {total})</Label>
+            <Label>Phân bổ câu hỏi (Tổng: {total})</Label>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Multiple Choice</Label>
+                <Label className="text-xs text-muted-foreground">Trắc nghiệm</Label>
                 <Input
                   type="number"
                   min={0}
                   value={counts.multipleChoice}
-                  onChange={e => setCounts(c => ({...c, multipleChoice: parseInt(e.target.value) || 0}))}
+                  onChange={e => setCounts(c => ({ ...c, multipleChoice: parseInt(e.target.value) || 0 }))}
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Fill in Blank</Label>
+                <Label className="text-xs text-muted-foreground">Điền vào chỗ trống</Label>
                 <Input
                   type="number"
                   min={0}
                   value={counts.fillInBlank}
-                  onChange={e => setCounts(c => ({...c, fillInBlank: parseInt(e.target.value) || 0}))}
+                  onChange={e => setCounts(c => ({ ...c, fillInBlank: parseInt(e.target.value) || 0 }))}
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Matching</Label>
+                <Label className="text-xs text-muted-foreground">Nối</Label>
                 <Input
                   type="number"
                   min={0}
                   value={counts.matching}
-                  onChange={e => setCounts(c => ({...c, matching: parseInt(e.target.value) || 0}))}
+                  onChange={e => setCounts(c => ({ ...c, matching: parseInt(e.target.value) || 0 }))}
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">True/False</Label>
+                <Label className="text-xs text-muted-foreground">Đúng/Sai</Label>
                 <Input
                   type="number"
                   min={0}
                   value={counts.trueFalse}
-                  onChange={e => setCounts(c => ({...c, trueFalse: parseInt(e.target.value) || 0}))}
+                  onChange={e => setCounts(c => ({ ...c, trueFalse: parseInt(e.target.value) || 0 }))}
                 />
               </div>
               <div className="space-y-1">
-                <Label className="text-xs text-muted-foreground">Short Answer</Label>
+                <Label className="text-xs text-muted-foreground">Trả lời ngắn</Label>
                 <Input
                   type="number"
                   min={0}
                   value={counts.shortAnswer}
-                  onChange={e => setCounts(c => ({...c, shortAnswer: parseInt(e.target.value) || 0}))}
+                  onChange={e => setCounts(c => ({ ...c, shortAnswer: parseInt(e.target.value) || 0 }))}
                 />
               </div>
             </div>
@@ -152,7 +152,7 @@ export function GenerateExamDialog({open, onOpenChange, lessonId, lessonName}: G
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Hủy
           </Button>
           <Button
             onClick={handleSubmit}
@@ -160,7 +160,7 @@ export function GenerateExamDialog({open, onOpenChange, lessonId, lessonName}: G
             className="bg-purple-600 hover:bg-purple-700 text-white"
           >
             {generateMutation.isPending && <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Generate Exam
+            Tạo bài kiểm tra
           </Button>
         </DialogFooter>
       </DialogContent>
