@@ -1,88 +1,88 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog'
-import { VocabularyItem, VocabularyExample } from '@/lib/types/models/vocabulary-collection'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Label } from '@/components/ui/label'
-import { IconPlus, IconTrash, IconDeviceFloppy, IconBook } from '@tabler/icons-react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils/cn'
+import {useState, useEffect} from 'react';
+import {Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter} from '@/components/ui/dialog';
+import {VocabularyItem, VocabularyExample} from '@/lib/types/models/vocabulary-collection';
+import {Badge} from '@/components/ui/badge';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Label} from '@/components/ui/label';
+import {IconPlus, IconTrash, IconDeviceFloppy, IconBook} from '@tabler/icons-react';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {toast} from 'sonner';
+import {cn} from '@/lib/utils/cn';
 
 interface VocabularyDetailDialogProps {
-  item: VocabularyItem | null
-  collectionId: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  item: VocabularyItem | null;
+  collectionId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 async function updateVocabularyItem(
   collectionId: string,
   itemId: string,
-  data: Partial<VocabularyItem>,
+  data: Partial<VocabularyItem>
 ): Promise<VocabularyItem> {
   const res = await fetch(`/api/vocabulary-collections/${collectionId}/items/${itemId}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
-export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange }: VocabularyDetailDialogProps) {
-  const queryClient = useQueryClient()
-  const [examples, setExamples] = useState<VocabularyExample[]>([])
-  const [hasChanges, setHasChanges] = useState(false)
+export function VocabularyDetailDialog({item, collectionId, open, onOpenChange}: VocabularyDetailDialogProps) {
+  const queryClient = useQueryClient();
+  const [examples, setExamples] = useState<VocabularyExample[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
 
   useEffect(() => {
     if (item) {
-      setExamples(item.examples || [])
-      setHasChanges(false)
+      setExamples(item.examples || []);
+      setHasChanges(false);
     }
-  }, [item])
+  }, [item]);
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<VocabularyItem>) => updateVocabularyItem(collectionId, item!._id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vocabulary-items', collectionId] })
-      toast.success('Examples updated successfully')
-      setHasChanges(false)
+      queryClient.invalidateQueries({queryKey: ['vocabulary-items', collectionId]});
+      toast.success('Examples updated successfully');
+      setHasChanges(false);
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const handleAddExample = () => {
-    setExamples([...examples, { text: '', meaning: '', explanation: '' }])
-    setHasChanges(true)
-  }
+    setExamples([...examples, {text: '', meaning: '', explanation: ''}]);
+    setHasChanges(true);
+  };
 
   const handleRemoveExample = (index: number) => {
-    setExamples(examples.filter((_, i) => i !== index))
-    setHasChanges(true)
-  }
+    setExamples(examples.filter((_, i) => i !== index));
+    setHasChanges(true);
+  };
 
   const handleExampleChange = (index: number, field: keyof VocabularyExample, value: string) => {
-    const newExamples = [...examples]
-    newExamples[index] = { ...newExamples[index], [field]: value }
-    setExamples(newExamples)
-    setHasChanges(true)
-  }
+    const newExamples = [...examples];
+    newExamples[index] = {...newExamples[index], [field]: value};
+    setExamples(newExamples);
+    setHasChanges(true);
+  };
 
   const handleSave = () => {
     // Filter out empty examples
-    const validExamples = examples.filter(ex => ex.text.trim() || ex.meaning.trim() || ex.explanation.trim())
-    updateMutation.mutate({ examples: validExamples })
-  }
+    const validExamples = examples.filter(ex => ex.text.trim() || ex.meaning.trim() || ex.explanation.trim());
+    updateMutation.mutate({examples: validExamples});
+  };
 
-  if (!item) return null
+  if (!item) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -219,7 +219,7 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
                     key={index}
                     className={cn(
                       'relative space-y-3 p-4 rounded-lg border bg-muted/30',
-                      'transition-all hover:border-primary/30',
+                      'transition-all hover:border-primary/30'
                     )}
                   >
                     <div className="absolute top-2 right-2">
@@ -291,5 +291,5 @@ export function VocabularyDetailDialog({ item, collectionId, open, onOpenChange 
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

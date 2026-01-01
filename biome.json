@@ -20,9 +20,9 @@
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
-      "trailingCommas": "all",
-      "semicolons": "asNeeded",
-      "bracketSpacing": true,
+      "trailingCommas": "es5",
+      "semicolons": "always",
+      "bracketSpacing": false,
       "arrowParentheses": "asNeeded"
     }
   },

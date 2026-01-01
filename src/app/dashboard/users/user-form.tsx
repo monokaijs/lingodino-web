@@ -1,45 +1,45 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { User, UserRole } from '@/lib/types/models/user'
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {useRouter} from 'next/navigation';
+import {toast} from 'sonner';
+import {User, UserRole} from '@/lib/types/models/user';
 
 const userSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   role: z.nativeEnum(UserRole),
   photo: z.string().optional(),
-})
+});
 
-type UserFormData = z.infer<typeof userSchema>
+type UserFormData = z.infer<typeof userSchema>;
 
 interface UserFormProps {
-  user: User
+  user: User;
 }
 
 async function updateUser(id: string, data: UserFormData): Promise<User> {
   const res = await fetch(`/api/users/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
-export function UserForm({ user }: UserFormProps) {
-  const router = useRouter()
-  const queryClient = useQueryClient()
+export function UserForm({user}: UserFormProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
 
   const form = useForm<UserFormData>({
     resolver: zodResolver(userSchema),
@@ -49,24 +49,24 @@ export function UserForm({ user }: UserFormProps) {
       role: user.role || UserRole.User,
       photo: user.photo || '',
     },
-  })
+  });
 
   const mutation = useMutation({
     mutationFn: (data: UserFormData) => updateUser(user._id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
-      queryClient.invalidateQueries({ queryKey: ['user', user._id] })
-      toast.success('User updated successfully')
-      router.push('/dashboard/users')
+      queryClient.invalidateQueries({queryKey: ['users']});
+      queryClient.invalidateQueries({queryKey: ['user', user._id]});
+      toast.success('User updated successfully');
+      router.push('/dashboard/users');
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const onSubmit = (data: UserFormData) => {
-    mutation.mutate(data)
-  }
+    mutation.mutate(data);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -80,7 +80,7 @@ export function UserForm({ user }: UserFormProps) {
               <FormField
                 control={form.control}
                 name="fullName"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
@@ -93,7 +93,7 @@ export function UserForm({ user }: UserFormProps) {
               <FormField
                 control={form.control}
                 name="email"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
@@ -106,7 +106,7 @@ export function UserForm({ user }: UserFormProps) {
               <FormField
                 control={form.control}
                 name="role"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Role</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -127,7 +127,7 @@ export function UserForm({ user }: UserFormProps) {
               <FormField
                 control={form.control}
                 name="photo"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Photo URL</FormLabel>
                     <FormControl>
@@ -150,5 +150,5 @@ export function UserForm({ user }: UserFormProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

@@ -1,30 +1,30 @@
-'use client'
+'use client';
 
-import { useForm, useFieldArray } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { ExamQuestion, ExamQuestionType, ExamQuestionOption } from '@/lib/types/models/exam'
-import { Attachment } from '@/lib/types/models/attachment'
-import { useEffect, useRef, useState } from 'react'
-import { IconPlus, IconTrash, IconUpload, IconX } from '@tabler/icons-react'
+import {useForm, useFieldArray} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Checkbox} from '@/components/ui/checkbox';
+import {ToggleGroup, ToggleGroupItem} from '@/components/ui/toggle-group';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {toast} from 'sonner';
+import {ExamQuestion, ExamQuestionType, ExamQuestionOption} from '@/lib/types/models/exam';
+import {Attachment} from '@/lib/types/models/attachment';
+import {useEffect, useRef, useState} from 'react';
+import {IconPlus, IconTrash, IconUpload, IconX} from '@tabler/icons-react';
 
 const optionSchema = z.object({
   text: z.string(),
   file: z.any().optional(),
   isCorrect: z.boolean().optional(),
-})
+});
 
-const typesWithOptionsSet = new Set([ExamQuestionType.MultipleChoice, ExamQuestionType.ListenAndChoose])
+const typesWithOptionsSet = new Set([ExamQuestionType.MultipleChoice, ExamQuestionType.ListenAndChoose]);
 
 const questionSchema = z
   .object({
@@ -36,7 +36,7 @@ const questionSchema = z
   .superRefine((data, ctx) => {
     if (typesWithOptionsSet.has(data.type)) {
       if (!data.options || data.options.length === 0) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'At least one option is required', path: ['options'] })
+        ctx.addIssue({code: z.ZodIssueCode.custom, message: 'At least one option is required', path: ['options']});
       } else {
         data.options.forEach((opt, i) => {
           if (!opt.text || opt.text.trim() === '') {
@@ -44,14 +44,14 @@ const questionSchema = z
               code: z.ZodIssueCode.custom,
               message: 'Option text is required',
               path: ['options', i, 'text'],
-            })
+            });
           }
-        })
+        });
       }
     }
-  })
+  });
 
-type QuestionFormData = z.infer<typeof questionSchema>
+type QuestionFormData = z.infer<typeof questionSchema>;
 
 export const questionTypeLabels: Record<ExamQuestionType, string> = {
   [ExamQuestionType.MultipleChoice]: 'Multiple Choice',
@@ -62,50 +62,50 @@ export const questionTypeLabels: Record<ExamQuestionType, string> = {
   [ExamQuestionType.ListenAndAnswer]: 'Listen and Answer',
   [ExamQuestionType.ListenAndWrite]: 'Listen and Write',
   [ExamQuestionType.ListenAndChoose]: 'Listen and Choose',
-}
+};
 
 const typesWithoutAnswer = [
   ExamQuestionType.LongAnswer,
   ExamQuestionType.MultipleChoice,
   ExamQuestionType.ListenAndChoose,
-]
+];
 
 interface QuestionDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  examId: string
-  question?: ExamQuestion | null
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  examId: string;
+  question?: ExamQuestion | null;
 }
 
 async function uploadFile(file: File): Promise<Attachment> {
-  const formData = new FormData()
-  formData.append('file', file)
-  const res = await fetch('/api/upload', { method: 'POST', body: formData })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch('/api/upload', {method: 'POST', body: formData});
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function createQuestion(examId: string, data: any): Promise<ExamQuestion> {
   const res = await fetch('/api/questions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ...data, examId }),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({...data, examId}),
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function updateQuestion(id: string, data: any): Promise<ExamQuestion> {
   const res = await fetch(`/api/questions/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 function OptionRow({
@@ -114,41 +114,41 @@ function OptionRow({
   onRemove,
   canRemove,
 }: {
-  index: number
-  form: any
-  onRemove: () => void
-  canRemove: boolean
+  index: number;
+  form: any;
+  onRemove: () => void;
+  canRemove: boolean;
 }) {
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const optionFile = form.watch(`options.${index}.file`)
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const optionFile = form.watch(`options.${index}.file`);
 
   const handleOptionFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
     try {
-      const attachment = await uploadFile(file)
-      form.setValue(`options.${index}.file`, attachment)
+      const attachment = await uploadFile(file);
+      form.setValue(`options.${index}.file`, attachment);
     } catch (err: any) {
-      toast.error(err.message)
+      toast.error(err.message);
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   return (
     <div className="flex items-start gap-2 p-2 border rounded">
       <FormField
         control={form.control}
         name={`options.${index}.isCorrect`}
-        render={({ field }) => <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-2" />}
+        render={({field}) => <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-2" />}
       />
       <div className="flex-1 space-y-2">
         <FormField
           control={form.control}
           name={`options.${index}.text`}
-          render={({ field }) => <Input placeholder={`Option ${index + 1}`} {...field} />}
+          render={({field}) => <Input placeholder={`Option ${index + 1}`} {...field} />}
         />
         <div className="flex items-center gap-2">
           <input type="file" ref={fileInputRef} onChange={handleOptionFileUpload} className="hidden" />
@@ -181,15 +181,15 @@ function OptionRow({
         <IconTrash className="h-4 w-4" />
       </Button>
     </div>
-  )
+  );
 }
 
-export function QuestionDialog({ open, onOpenChange, examId, question }: QuestionDialogProps) {
-  const queryClient = useQueryClient()
-  const isEditing = !!question
-  const [questionFile, setQuestionFile] = useState<Attachment | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+export function QuestionDialog({open, onOpenChange, examId, question}: QuestionDialogProps) {
+  const queryClient = useQueryClient();
+  const isEditing = !!question;
+  const [questionFile, setQuestionFile] = useState<Attachment | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<QuestionFormData>({
     resolver: zodResolver(questionSchema),
@@ -197,12 +197,12 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
       type: ExamQuestionType.MultipleChoice,
       question: '',
       answer: '',
-      options: [{ text: '', isCorrect: false }],
+      options: [{text: '', isCorrect: false}],
     },
-  })
+  });
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'options' })
-  const watchedType = form.watch('type')
+  const {fields, append, remove} = useFieldArray({control: form.control, name: 'options'});
+  const watchedType = form.watch('type');
 
   useEffect(() => {
     if (question) {
@@ -210,33 +210,33 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
         type: question.type,
         question: question.question,
         answer: question.answer,
-        options: question.options?.map(o => ({ text: o.text, file: o.file, isCorrect: o.isCorrect })) || [],
-      })
-      setQuestionFile(question.file || null)
+        options: question.options?.map(o => ({text: o.text, file: o.file, isCorrect: o.isCorrect})) || [],
+      });
+      setQuestionFile(question.file || null);
     } else {
       form.reset({
         type: ExamQuestionType.MultipleChoice,
         question: '',
         answer: '',
-        options: [{ text: '', isCorrect: false }],
-      })
-      setQuestionFile(null)
+        options: [{text: '', isCorrect: false}],
+      });
+      setQuestionFile(null);
     }
-  }, [question, form])
+  }, [question, form]);
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
     try {
-      const attachment = await uploadFile(file)
-      setQuestionFile(attachment)
+      const attachment = await uploadFile(file);
+      setQuestionFile(attachment);
     } catch (err: any) {
-      toast.error(err.message)
+      toast.error(err.message);
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: QuestionFormData) => {
@@ -244,23 +244,23 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
         type: data.type,
         question: data.question,
         answer: data.answer || '',
-      }
-      if (questionFile) payload.file = questionFile
+      };
+      if (questionFile) payload.file = questionFile;
       if (typesWithOptionsSet.has(data.type) && data.options) {
-        payload.options = data.options.filter(o => o.text?.trim())
+        payload.options = data.options.filter(o => o.text?.trim());
       }
-      return isEditing ? updateQuestion(question._id, payload) : createQuestion(examId, payload)
+      return isEditing ? updateQuestion(question._id, payload) : createQuestion(examId, payload);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['questions', examId] })
-      toast.success(isEditing ? 'Question updated' : 'Question created')
-      onOpenChange(false)
+      queryClient.invalidateQueries({queryKey: ['questions', examId]});
+      toast.success(isEditing ? 'Question updated' : 'Question created');
+      onOpenChange(false);
     },
     onError: (error: Error) => toast.error(error.message),
-  })
+  });
 
-  const onSubmit = (data: QuestionFormData) => mutation.mutate(data)
-  const onError = (errors: any) => console.error('Form validation errors:', errors)
+  const onSubmit = (data: QuestionFormData) => mutation.mutate(data);
+  const onError = (errors: any) => console.error('Form validation errors:', errors);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -273,7 +273,7 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
             <FormField
               control={form.control}
               name="type"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel>Type</FormLabel>
                   <Select onValueChange={field.onChange} value={field.value}>
@@ -297,7 +297,7 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
             <FormField
               control={form.control}
               name="question"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel>Question</FormLabel>
                   <FormControl>
@@ -339,7 +339,7 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
                     type="button"
                     variant="outline"
                     size="sm"
-                    onClick={() => append({ text: '', isCorrect: false })}
+                    onClick={() => append({text: '', isCorrect: false})}
                   >
                     <IconPlus className="h-4 w-4 mr-1" />
                     Add
@@ -362,7 +362,7 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
               <FormField
                 control={form.control}
                 name="answer"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Answer</FormLabel>
                     {watchedType === ExamQuestionType.TrueFalse ? (
@@ -400,5 +400,5 @@ export function QuestionDialog({ open, onOpenChange, examId, question }: Questio
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { CourseForm } from '../course-form'
+import {CourseForm} from '../course-form';
 
 export default function NewCoursePage() {
-  return <CourseForm />
+  return <CourseForm />;
 }

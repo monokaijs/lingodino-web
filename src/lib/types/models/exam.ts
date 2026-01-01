@@ -1,12 +1,12 @@
-import { Attachment } from '@/lib/types/models/attachment'
+import {Attachment} from '@/lib/types/models/attachment';
 
 export interface Exam {
-  _id: string
-  name: string
-  description: string
-  lessonId: string
-  createdAt?: Date
-  updatedAt?: Date
+  _id: string;
+  name: string;
+  description: string;
+  lessonId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export enum ExamQuestionType {
@@ -24,22 +24,22 @@ export const ExamQuestionTypeManualAnswer = [
   ExamQuestionType.ShortAnswer,
   ExamQuestionType.LongAnswer,
   ExamQuestionType.ListenAndWrite,
-]
+];
 
 export interface ExamQuestionOption {
-  text: string
-  file?: Attachment
-  isCorrect?: boolean
+  text: string;
+  file?: Attachment;
+  isCorrect?: boolean;
 }
 
 export interface ExamQuestion {
-  _id: string
-  examId: string
-  type: ExamQuestionType
-  file?: Attachment
-  question: string
-  options?: ExamQuestionOption[]
-  answer: string
-  createdAt?: Date
-  updatedAt?: Date
+  _id: string;
+  examId: string;
+  type: ExamQuestionType;
+  file?: Attachment;
+  question: string;
+  options?: ExamQuestionOption[];
+  answer: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }

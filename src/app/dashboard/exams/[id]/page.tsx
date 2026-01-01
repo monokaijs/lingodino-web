@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { IconArrowLeft, IconEdit, IconPlus, IconTrash } from '@tabler/icons-react'
-import Link from 'next/link'
-import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {IconArrowLeft, IconEdit, IconPlus, IconTrash} from '@tabler/icons-react';
+import Link from 'next/link';
+import {useState} from 'react';
+import {useParams} from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,80 +17,80 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { Exam, ExamQuestion } from '@/lib/types/models/exam'
-import { Badge } from '@/components/ui/badge'
-import { QuestionDialog, questionTypeLabels } from './question-dialog'
+} from '@/components/ui/alert-dialog';
+import {toast} from 'sonner';
+import {Exam, ExamQuestion} from '@/lib/types/models/exam';
+import {Badge} from '@/components/ui/badge';
+import {QuestionDialog, questionTypeLabels} from './question-dialog';
 
 interface ApiResponse<T> {
-  data: T
-  code: number
-  message: string
+  data: T;
+  code: number;
+  message: string;
 }
 
 async function fetchExam(id: string): Promise<Exam> {
-  const res = await fetch(`/api/exams/${id}`)
-  const json: ApiResponse<Exam> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch(`/api/exams/${id}`);
+  const json: ApiResponse<Exam> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function fetchQuestions(examId: string): Promise<ExamQuestion[]> {
-  const res = await fetch(`/api/questions?examId=${examId}`)
-  const json: ApiResponse<ExamQuestion[]> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch(`/api/questions?examId=${examId}`);
+  const json: ApiResponse<ExamQuestion[]> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function deleteQuestion(id: string): Promise<void> {
-  const res = await fetch(`/api/questions/${id}`, { method: 'DELETE' })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
+  const res = await fetch(`/api/questions/${id}`, {method: 'DELETE'});
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
 }
 
 export default function ExamDetailPage() {
-  const params = useParams()
-  const examId = params.id as string
-  const queryClient = useQueryClient()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingQuestion, setEditingQuestion] = useState<ExamQuestion | null>(null)
+  const params = useParams();
+  const examId = params.id as string;
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingQuestion, setEditingQuestion] = useState<ExamQuestion | null>(null);
 
-  const { data: exam } = useQuery({
+  const {data: exam} = useQuery({
     queryKey: ['exam', examId],
     queryFn: () => fetchExam(examId),
-  })
+  });
 
-  const { data: questions, isLoading } = useQuery({
+  const {data: questions, isLoading} = useQuery({
     queryKey: ['questions', examId],
     queryFn: () => fetchQuestions(examId),
-  })
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteQuestion,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['questions', examId] })
-      toast.success('Question deleted')
-      setDeleteId(null)
+      queryClient.invalidateQueries({queryKey: ['questions', examId]});
+      toast.success('Question deleted');
+      setDeleteId(null);
     },
     onError: (error: Error) => toast.error(error.message),
-  })
+  });
 
   const handleEdit = (question: ExamQuestion) => {
-    setEditingQuestion(question)
-    setDialogOpen(true)
-  }
+    setEditingQuestion(question);
+    setDialogOpen(true);
+  };
 
   const handleCreate = () => {
-    setEditingQuestion(null)
-    setDialogOpen(true)
-  }
+    setEditingQuestion(null);
+    setDialogOpen(true);
+  };
 
   const handleDialogClose = () => {
-    setDialogOpen(false)
-    setEditingQuestion(null)
-  }
+    setDialogOpen(false);
+    setEditingQuestion(null);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -178,5 +178,5 @@ export default function ExamDetailPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

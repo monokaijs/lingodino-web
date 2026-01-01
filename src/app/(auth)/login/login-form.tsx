@@ -1,23 +1,23 @@
-'use client'
+'use client';
 
-import { cn } from '@/lib/utils/cn'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
+import {cn} from '@/lib/utils/cn';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card';
+import {useState} from 'react';
+import {signIn} from 'next-auth/react';
 
-export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
-  const [isLoading, setIsLoading] = useState<'google' | 'apple' | null>(null)
+export function LoginForm({className, ...props}: React.ComponentProps<'div'>) {
+  const [isLoading, setIsLoading] = useState<'google' | 'apple' | null>(null);
 
   const handleGoogleLogin = async () => {
-    setIsLoading('google')
-    await signIn('google', { callbackUrl: '/dashboard' })
-  }
+    setIsLoading('google');
+    await signIn('google', {callbackUrl: '/dashboard'});
+  };
 
   const handleAppleLogin = async () => {
-    setIsLoading('apple')
-    await signIn('apple', { callbackUrl: '/dashboard' })
-  }
+    setIsLoading('apple');
+    await signIn('apple', {callbackUrl: '/dashboard'});
+  };
 
   return (
     <div className={cn('flex flex-col gap-6', className)} {...props}>
@@ -37,5 +37,5 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

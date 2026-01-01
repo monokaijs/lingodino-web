@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { IconBooks, IconVocabulary, IconLanguage, IconHeadphones, IconArrowRight } from '@tabler/icons-react'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
+import {IconBooks, IconVocabulary, IconLanguage, IconHeadphones, IconArrowRight} from '@tabler/icons-react';
+import Link from 'next/link';
+import {Button} from '@/components/ui/button';
 
 const features = [
   {
@@ -38,7 +38,7 @@ const features = [
     color: 'text-orange-500',
     bgColor: 'bg-orange-500/10',
   },
-]
+];
 
 export default function DashboardPage() {
   return (
@@ -84,5 +84,5 @@ export default function DashboardPage() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import mongoose from 'mongoose'
-import mongoosePaginate from 'mongoose-paginate-v2'
-import { User, UserRole } from '@/lib/types/models/user'
+import mongoose from 'mongoose';
+import mongoosePaginate from 'mongoose-paginate-v2';
+import {User, UserRole} from '@/lib/types/models/user';
 
 export const UserSchema = new mongoose.Schema<User>({
   fullName: String,
@@ -25,9 +25,9 @@ export const UserSchema = new mongoose.Schema<User>({
     unique: true,
     sparse: true,
   },
-})
+});
 
-UserSchema.index({ role: 1 })
-UserSchema.index({ createdAt: -1 })
+UserSchema.index({role: 1});
+UserSchema.index({createdAt: -1});
 
-UserSchema.plugin(mongoosePaginate)
+UserSchema.plugin(mongoosePaginate);

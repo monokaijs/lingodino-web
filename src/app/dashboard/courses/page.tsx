@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react'
-import Link from 'next/link'
-import { useState } from 'react'
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {IconPlus, IconEdit, IconTrash} from '@tabler/icons-react';
+import Link from 'next/link';
+import {useState} from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,50 +16,50 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { Course } from '@/lib/types/models/course'
+} from '@/components/ui/alert-dialog';
+import {toast} from 'sonner';
+import {Course} from '@/lib/types/models/course';
 
 interface ApiResponse<T> {
-  data: T
-  pagination?: any
-  code: number
-  message: string
+  data: T;
+  pagination?: any;
+  code: number;
+  message: string;
 }
 
 async function fetchCourses(): Promise<Course[]> {
-  const res = await fetch('/api/courses')
-  const json: ApiResponse<Course[]> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch('/api/courses');
+  const json: ApiResponse<Course[]> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function deleteCourse(id: string): Promise<void> {
-  const res = await fetch(`/api/courses/${id}`, { method: 'DELETE' })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
+  const res = await fetch(`/api/courses/${id}`, {method: 'DELETE'});
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
 }
 
 export default function CoursesPage() {
-  const queryClient = useQueryClient()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: courses, isLoading } = useQuery({
+  const {data: courses, isLoading} = useQuery({
     queryKey: ['courses'],
     queryFn: fetchCourses,
-  })
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteCourse,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['courses'] })
-      toast.success('Course deleted successfully')
-      setDeleteId(null)
+      queryClient.invalidateQueries({queryKey: ['courses']});
+      toast.success('Course deleted successfully');
+      setDeleteId(null);
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -136,5 +136,5 @@ export default function CoursesPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

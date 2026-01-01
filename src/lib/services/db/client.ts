@@ -1,37 +1,37 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 declare global {
-  var mongoose: any
+  var mongoose: any;
 }
 
-let cached = globalThis.mongoose || global.mongoose
+let cached = globalThis.mongoose || global.mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null, indexesCreated: false }
+  cached = global.mongoose = {conn: null, promise: null, indexesCreated: false};
 }
 
 async function dbConnect() {
-  const MONGO_URI = process.env.MONGO_URI!
+  const MONGO_URI = process.env.MONGO_URI!;
 
-  if (!MONGO_URI) return
+  if (!MONGO_URI) return;
 
   if (cached.conn) {
-    return cached.conn
+    return cached.conn;
   }
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-    }
+    };
     cached.promise = mongoose.connect(MONGO_URI, opts).then(async mongoose => {
-      return mongoose
-    })
+      return mongoose;
+    });
   }
   try {
-    cached.conn = await cached.promise
+    cached.conn = await cached.promise;
   } catch (e) {
-    cached.promise = null
-    throw e
+    cached.promise = null;
+    throw e;
   }
 
-  return cached.conn
+  return cached.conn;
 }
-export default dbConnect
+export default dbConnect;

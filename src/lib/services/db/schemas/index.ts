@@ -1,11 +1,11 @@
-export * from './user'
-export * from './systemPreference'
-export * from './course'
-export * from './lesson'
-export * from './exam'
-export * from './vocabulary-collection'
-export * from './grammar'
-export * from './conversation'
+export * from './user';
+export * from './systemPreference';
+export * from './course';
+export * from './lesson';
+export * from './exam';
+export * from './vocabulary-collection';
+export * from './grammar';
+export * from './conversation';
 
 export enum Schemas {
   User = 'User',

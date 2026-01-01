@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-import { SystemPreference } from '@/lib/types/models/system-preference'
+import mongoose from 'mongoose';
+import {SystemPreference} from '@/lib/types/models/system-preference';
 
 export const SystemPreferenceSchema = new mongoose.Schema<SystemPreference>(
   {
@@ -15,5 +15,5 @@ export const SystemPreferenceSchema = new mongoose.Schema<SystemPreference>(
   },
   {
     timestamps: true,
-  },
-)
+  }
+);

@@ -14,4 +14,4 @@ export const ApiRoutes = {
   createUser: '/api/users',
   updateUser: '/api/users/:id',
   deleteUser: '/api/users/:id',
-} as const
+} as const;

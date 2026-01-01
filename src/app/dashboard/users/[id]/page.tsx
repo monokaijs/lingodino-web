@@ -1,19 +1,19 @@
-import { dbService } from '@/lib/services/db'
-import { notFound } from 'next/navigation'
-import { UserForm } from '../user-form'
+import {dbService} from '@/lib/services/db';
+import {notFound} from 'next/navigation';
+import {UserForm} from '../user-form';
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{id: string}>;
 }
 
-export default async function UserEditPage({ params }: PageProps) {
-  const { id } = await params
+export default async function UserEditPage({params}: PageProps) {
+  const {id} = await params;
 
-  await dbService.connect()
-  const user = await dbService.user.findById(id)
+  await dbService.connect();
+  const user = await dbService.user.findById(id);
 
   if (!user) {
-    notFound()
+    notFound();
   }
 
   // Convert to plain object for client component
@@ -23,7 +23,7 @@ export default async function UserEditPage({ params }: PageProps) {
     email: user.email || '',
     role: user.role,
     photo: user.photo || '',
-  }
+  };
 
-  return <UserForm user={userObj as any} />
+  return <UserForm user={userObj as any} />;
 }

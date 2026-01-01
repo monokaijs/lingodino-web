@@ -1,72 +1,75 @@
-import { NextRequest } from 'next/server'
-import { withApi } from '@/lib/utils/withApi'
-import { dbService } from '@/lib/services/db'
-import { UserRole } from '@/lib/types/models/user'
+import {NextRequest} from 'next/server';
+import {withApi} from '@/lib/utils/withApi';
+import {dbService} from '@/lib/services/db';
+import {UserRole} from '@/lib/types/models/user';
 
 interface HSKTranscription {
-  pinyin?: string
-  numeric?: string
-  wadegiles?: string
-  bopomofo?: string
-  romatzyh?: string
+  pinyin?: string;
+  numeric?: string;
+  wadegiles?: string;
+  bopomofo?: string;
+  romatzyh?: string;
 }
 
 interface HSKVocabForm {
-  traditional?: string
-  transcriptions?: HSKTranscription
-  meanings?: string[]
-  classifiers?: string[]
+  traditional?: string;
+  transcriptions?: HSKTranscription;
+  meanings?: string[];
+  classifiers?: string[];
 }
 
 interface HSKVocabItem {
-  simplified: string
-  radical?: string
-  frequency?: number
-  pos?: string[]
-  forms?: HSKVocabForm[]
+  simplified: string;
+  radical?: string;
+  frequency?: number;
+  pos?: string[];
+  forms?: HSKVocabForm[];
 }
 
-async function postHandler(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const body = await request.json()
+async function postHandler(request: NextRequest, {params}: {params: Promise<{id: string}>}) {
+  const {id} = await params;
+  const body = await request.json();
 
-  const collection = await dbService.vocabularyCollection.findById(id)
+  const collection = await dbService.vocabularyCollection.findById(id);
   if (!collection) {
-    const error = new Error('Collection not found')
-    ;(error as any).code = 404
-    throw error
+    const error = new Error('Collection not found');
+    (error as any).code = 404;
+    throw error;
   }
 
-  if (!body.url) {
-    const error = new Error('URL is required')
-    ;(error as any).code = 400
-    throw error
-  }
+  // Fetch JSON from URL or use provided data
+  let vocabData: HSKVocabItem[];
 
-  // Fetch JSON from URL
-  let vocabData: HSKVocabItem[]
-  try {
-    const response = await fetch(body.url)
-    if (!response.ok) {
-      throw new Error(`Failed to fetch: ${response.statusText}`)
+  if (body.data) {
+    vocabData = body.data;
+  } else if (body.url) {
+    try {
+      const response = await fetch(body.url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch: ${response.statusText}`);
+      }
+      vocabData = await response.json();
+    } catch (err: any) {
+      const error = new Error(`Failed to fetch vocabulary data: ${err.message}`);
+      (error as any).code = 400;
+      throw error;
     }
-    vocabData = await response.json()
-  } catch (err: any) {
-    const error = new Error(`Failed to fetch vocabulary data: ${err.message}`)
-    ;(error as any).code = 400
-    throw error
+  } else {
+    const error = new Error('URL or Data is required');
+    (error as any).code = 400;
+    throw error;
   }
 
   if (!Array.isArray(vocabData)) {
-    const error = new Error('Invalid vocabulary data format: expected an array')
-    ;(error as any).code = 400
-    throw error
+    const error = new Error('Invalid vocabulary data format: expected an array');
+    (error as any).code = 400;
+    throw error;
   }
 
   // Parse and flatten vocabulary items - completely flat structure
   const items = vocabData
     .map((item, index) => {
-      const primaryForm = item.forms?.[0]
+      const primaryForm = item.forms?.[0];
 
       return {
         collectionId: id,
@@ -88,22 +91,22 @@ async function postHandler(request: NextRequest, { params }: { params: Promise<{
         radical: item.radical || '',
         frequency: item.frequency || 0,
         order: index,
-      }
+      };
     })
-    .filter(item => item.simplified)
+    .filter(item => item.simplified);
 
   // Bulk insert items
   if (items.length > 0) {
-    await dbService.vocabularyItem.insertMany(items)
+    await dbService.vocabularyItem.insertMany(items);
 
     // Update item count
-    await dbService.vocabularyCollection.update({ _id: id }, { $inc: { itemCount: items.length } }, { new: true })
+    await dbService.vocabularyCollection.update({_id: id}, {$inc: {itemCount: items.length}}, {new: true});
   }
 
   return {
     message: `Successfully imported ${items.length} vocabulary items`,
     count: items.length,
-  }
+  };
 }
 
-export const POST = withApi(postHandler, { protected: true, roles: [UserRole.Admin] })
+export const POST = withApi(postHandler, {protected: true, roles: [UserRole.Admin]});

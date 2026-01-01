@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { IconEdit, IconTrash } from '@tabler/icons-react'
-import Link from 'next/link'
-import { useState } from 'react'
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {IconEdit, IconTrash} from '@tabler/icons-react';
+import Link from 'next/link';
+import {useState} from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,52 +16,52 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { User } from '@/lib/types/models/user'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
+} from '@/components/ui/alert-dialog';
+import {toast} from 'sonner';
+import {User} from '@/lib/types/models/user';
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
+import {Badge} from '@/components/ui/badge';
 
 interface ApiResponse<T> {
-  data: T
-  pagination?: any
-  code: number
-  message: string
+  data: T;
+  pagination?: any;
+  code: number;
+  message: string;
 }
 
 async function fetchUsers(): Promise<User[]> {
-  const res = await fetch('/api/users')
-  const json: ApiResponse<User[]> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch('/api/users');
+  const json: ApiResponse<User[]> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function deleteUser(id: string): Promise<void> {
-  const res = await fetch(`/api/users/${id}`, { method: 'DELETE' })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
+  const res = await fetch(`/api/users/${id}`, {method: 'DELETE'});
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
 }
 
 export default function UsersPage() {
-  const queryClient = useQueryClient()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const { data: users, isLoading } = useQuery({
+  const {data: users, isLoading} = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
-  })
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteUser,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
-      toast.success('User deleted successfully')
-      setDeleteId(null)
+      queryClient.invalidateQueries({queryKey: ['users']});
+      toast.success('User deleted successfully');
+      setDeleteId(null);
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const getInitials = (name: string) => {
     return name
@@ -69,8 +69,8 @@ export default function UsersPage() {
       .map(n => n[0])
       .join('')
       .toUpperCase()
-      .slice(0, 2)
-  }
+      .slice(0, 2);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -149,5 +149,5 @@ export default function UsersPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { IconDotsVertical, IconLogout, IconUserCircle } from '@tabler/icons-react'
-import { signOut } from 'next-auth/react'
+import {IconDotsVertical, IconLogout, IconUserCircle} from '@tabler/icons-react';
+import {signOut} from 'next-auth/react';
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {Avatar, AvatarFallback, AvatarImage} from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,8 +11,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+} from '@/components/ui/dropdown-menu';
+import {SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar} from '@/components/ui/sidebar';
 
 function getInitials(name: string): string {
   return (
@@ -22,23 +22,23 @@ function getInitials(name: string): string {
       .join('')
       .toUpperCase()
       .slice(0, 2) || 'U'
-  )
+  );
 }
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { isMobile } = useSidebar()
+  const {isMobile} = useSidebar();
 
   const handleLogout = () => {
-    signOut({ callbackUrl: '/login' })
-  }
+    signOut({callbackUrl: '/login'});
+  };
 
   return (
     <SidebarMenu>
@@ -92,5 +92,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

@@ -1,13 +1,13 @@
-'use client'
+'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { IconPlus, IconEdit, IconTrash, IconArrowLeft, IconGripVertical } from '@tabler/icons-react'
-import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
+import {IconPlus, IconEdit, IconTrash, IconArrowLeft, IconGripVertical} from '@tabler/icons-react';
+import Link from 'next/link';
+import {useEffect, useState} from 'react';
+import {useParams} from 'next/navigation';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,12 +17,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
-import { toast } from 'sonner'
-import { Course } from '@/lib/types/models/course'
-import { Lesson } from '@/lib/types/models/lesson'
-import { LessonDialog } from './lesson-dialog'
+} from '@/components/ui/alert-dialog';
+import {Dialog, DialogContent, DialogHeader, DialogTitle} from '@/components/ui/dialog';
+import {toast} from 'sonner';
+import {Course} from '@/lib/types/models/course';
+import {Lesson} from '@/lib/types/models/lesson';
+import {LessonDialog} from './lesson-dialog';
 import {
   DndContext,
   closestCenter,
@@ -32,60 +32,60 @@ import {
   useSensors,
   DragEndEvent,
   DragOverlay,
-} from '@dnd-kit/core'
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers'
+} from '@dnd-kit/core';
+import {restrictToVerticalAxis} from '@dnd-kit/modifiers';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 
 interface ApiResponse<T> {
-  data: T
-  code: number
-  message: string
+  data: T;
+  code: number;
+  message: string;
 }
 
 async function fetchCourse(id: string): Promise<Course> {
-  const res = await fetch(`/api/courses/${id}`)
-  const json: ApiResponse<Course> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch(`/api/courses/${id}`);
+  const json: ApiResponse<Course> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function fetchLessons(courseId: string): Promise<Lesson[]> {
-  const res = await fetch(`/api/lessons?courseId=${courseId}`)
-  const json: ApiResponse<Lesson[]> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch(`/api/lessons?courseId=${courseId}`);
+  const json: ApiResponse<Lesson[]> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function deleteLesson(id: string): Promise<void> {
-  const res = await fetch(`/api/lessons/${id}`, { method: 'DELETE' })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
+  const res = await fetch(`/api/lessons/${id}`, {method: 'DELETE'});
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
 }
 
 async function updateLessonOrder(id: string, order: number): Promise<void> {
   const res = await fetch(`/api/lessons/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ order }),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({order}),
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
 }
 
 interface SortableRowProps {
-  children: React.ReactNode
-  id: string
+  children: React.ReactNode;
+  id: string;
 }
 
-function SortableRow({ children, id }: SortableRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
+function SortableRow({children, id}: SortableRowProps) {
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id});
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -93,7 +93,7 @@ function SortableRow({ children, id }: SortableRowProps) {
     opacity: isDragging ? 0.5 : 1,
     position: 'relative' as 'relative',
     zIndex: isDragging ? 999 : 'auto',
-  }
+  };
 
   return (
     <TableRow ref={setNodeRef} style={style} {...attributes}>
@@ -104,118 +104,118 @@ function SortableRow({ children, id }: SortableRowProps) {
       </TableCell>
       {children}
     </TableRow>
-  )
+  );
 }
 
 export default function CourseDetailPage() {
-  const params = useParams()
-  const courseId = params.id as string
-  const queryClient = useQueryClient()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null)
+  const params = useParams();
+  const courseId = params.id as string;
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
 
-  const { data: course } = useQuery({
+  const {data: course} = useQuery({
     queryKey: ['course', courseId],
     queryFn: () => fetchCourse(courseId),
-  })
+  });
 
-  const [optimisticLessons, setOptimisticLessons] = useState<Lesson[]>([])
+  const [optimisticLessons, setOptimisticLessons] = useState<Lesson[]>([]);
 
-  const { data: lessons, isLoading } = useQuery({
+  const {data: lessons, isLoading} = useQuery({
     queryKey: ['lessons', courseId],
     queryFn: () => fetchLessons(courseId),
-  })
+  });
 
   // Sync optimistic lessons with fetched lessons
   if (lessons && optimisticLessons.length === 0 && lessons.length > 0) {
-    setOptimisticLessons(lessons)
+    setOptimisticLessons(lessons);
   }
   // Also sync if lessons length changes or if we are not dragging?
   // Proper sync way:
-  const [activeId, setActiveId] = useState<string | null>(null)
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   useEffect(() => {
     if (lessons) {
-      setOptimisticLessons(lessons)
+      setOptimisticLessons(lessons);
     }
-  }, [lessons])
+  }, [lessons]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  )
+    })
+  );
 
   const deleteMutation = useMutation({
     mutationFn: deleteLesson,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['lessons', courseId] })
-      toast.success('Lesson deleted')
-      setDeleteId(null)
+      queryClient.invalidateQueries({queryKey: ['lessons', courseId]});
+      toast.success('Lesson deleted');
+      setDeleteId(null);
     },
     onError: (error: Error) => toast.error(error.message),
-  })
+  });
 
   const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    setActiveId(null)
+    const {active, over} = event;
+    setActiveId(null);
 
     if (active.id !== over?.id) {
       setOptimisticLessons(items => {
-        const oldIndex = items.findIndex(item => item._id === active.id)
-        const newIndex = items.findIndex(item => item._id === over?.id)
-        const newItems = arrayMove(items, oldIndex, newIndex)
+        const oldIndex = items.findIndex(item => item._id === active.id);
+        const newIndex = items.findIndex(item => item._id === over?.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
 
         // Calculate new order
-        let newOrder: number
+        let newOrder: number;
         if (newItems.length === 1) {
-          newOrder = Date.now()
+          newOrder = Date.now();
         } else if (newIndex === 0) {
           // First item
-          newOrder = newItems[1].order - 60000 // Subtract 1 minute roughly
+          newOrder = newItems[1].order - 60000; // Subtract 1 minute roughly
         } else if (newIndex === newItems.length - 1) {
           // Last item
-          newOrder = newItems[newItems.length - 2].order + 60000
+          newOrder = newItems[newItems.length - 2].order + 60000;
         } else {
           // Middle
-          const prevOrder = newItems[newIndex - 1].order
-          const nextOrder = newItems[newIndex + 1].order
-          newOrder = (prevOrder + nextOrder) / 2
+          const prevOrder = newItems[newIndex - 1].order;
+          const nextOrder = newItems[newIndex + 1].order;
+          newOrder = (prevOrder + nextOrder) / 2;
         }
 
         // Update the item in local state immediately so UI reflects it?
         // arrayMove moved it, but didn't update the order property value in the object.
         // We probably don't need to update the order property in UI strictly, as long as position is correct.
         // But for consistency we should.
-        newItems[newIndex] = { ...newItems[newIndex], order: newOrder }
+        newItems[newIndex] = {...newItems[newIndex], order: newOrder};
 
         // Fire API update
         updateLessonOrder(active.id as string, newOrder).catch(err => {
-          toast.error('Failed to save order')
-          queryClient.invalidateQueries({ queryKey: ['lessons', courseId] })
-        })
+          toast.error('Failed to save order');
+          queryClient.invalidateQueries({queryKey: ['lessons', courseId]});
+        });
 
-        return newItems
-      })
+        return newItems;
+      });
     }
-  }
+  };
 
   const handleEdit = (lesson: Lesson) => {
-    setEditingLesson(lesson)
-    setDialogOpen(true)
-  }
+    setEditingLesson(lesson);
+    setDialogOpen(true);
+  };
 
   const handleCreate = () => {
-    setEditingLesson(null)
-    setDialogOpen(true)
-  }
+    setEditingLesson(null);
+    setDialogOpen(true);
+  };
 
   const handleDialogClose = () => {
-    setDialogOpen(false)
-    setEditingLesson(null)
-  }
+    setDialogOpen(false);
+    setEditingLesson(null);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -338,10 +338,12 @@ export default function CourseDetailPage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => deleteId && deleteMutation.mutate(deleteId)}>Delete</AlertDialogAction>
+            <AlertDialogAction asChild onClick={() => deleteId && deleteMutation.mutate(deleteId)}>
+              <Button variant="destructive">Delete</Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

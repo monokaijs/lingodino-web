@@ -1,7 +1,7 @@
-import { GalleryVerticalEnd } from 'lucide-react'
-import { ReactNode } from 'react'
+import {GalleryVerticalEnd} from 'lucide-react';
+import {ReactNode} from 'react';
 
-export default function LoginPage({ children }: { children: ReactNode }) {
+export default function LoginPage({children}: {children: ReactNode}) {
   return (
     <div className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
       <div className="flex w-full max-w-sm flex-col gap-6">
@@ -14,5 +14,5 @@ export default function LoginPage({ children }: { children: ReactNode }) {
         {children}
       </div>
     </div>
-  )
+  );
 }

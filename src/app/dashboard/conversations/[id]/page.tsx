@@ -1,19 +1,14 @@
-'use client'
+'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {Card, CardContent, CardHeader, CardTitle, CardDescription} from '@/components/ui/card';
+import {Input} from '@/components/ui/input';
+import {Label} from '@/components/ui/label';
+import {Textarea} from '@/components/ui/textarea';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {Badge} from '@/components/ui/badge';
+import {DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger} from '@/components/ui/dropdown-menu';
 import {
   IconArrowLeft,
   IconPlus,
@@ -28,11 +23,11 @@ import {
   IconVideo,
   IconMicrophone,
   IconFileText,
-} from '@tabler/icons-react'
-import Link from 'next/link'
-import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+} from '@tabler/icons-react';
+import Link from 'next/link';
+import {useState, useEffect} from 'react';
+import {useParams, useRouter} from 'next/navigation';
+import {toast} from 'sonner';
 import {
   Conversation,
   ConversationParticipant,
@@ -40,10 +35,10 @@ import {
   ParticipantRole,
   ConversationStatus,
   ElevenLabsVoice,
-} from '@/lib/types/models/conversation'
-import { GenerateDialogueDialog } from '@/components/conversations/GenerateDialogueDialog'
-import { GenerateVideoDialog } from '@/components/conversations/GenerateVideoDialog'
-import { cn } from '@/lib/utils/cn'
+} from '@/lib/types/models/conversation';
+import {GenerateDialogueDialog} from '@/components/conversations/GenerateDialogueDialog';
+import {GenerateVideoDialog} from '@/components/conversations/GenerateVideoDialog';
+import {cn} from '@/lib/utils/cn';
 import {
   DndContext,
   closestCenter,
@@ -52,88 +47,88 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
-} from '@dnd-kit/core'
+} from '@dnd-kit/core';
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
   verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+} from '@dnd-kit/sortable';
+import {CSS} from '@dnd-kit/utilities';
 
 interface ApiResponse<T> {
-  data: T
-  pagination?: any
-  code: number
-  message: string
+  data: T;
+  pagination?: any;
+  code: number;
+  message: string;
 }
 
 interface VoicesResponse {
-  voices: ElevenLabsVoice[]
-  tones: string[]
-  emotions: string[]
+  voices: ElevenLabsVoice[];
+  tones: string[];
+  emotions: string[];
 }
 
 async function fetchConversation(id: string): Promise<Conversation> {
-  const res = await fetch(`/api/conversations/${id}`)
-  const json: ApiResponse<Conversation> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch(`/api/conversations/${id}`);
+  const json: ApiResponse<Conversation> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function fetchVoices(): Promise<VoicesResponse> {
-  const res = await fetch('/api/conversations/voices')
-  const json: ApiResponse<VoicesResponse> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch('/api/conversations/voices');
+  const json: ApiResponse<VoicesResponse> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function updateConversation(id: string, data: Partial<Conversation>): Promise<Conversation> {
   const res = await fetch(`/api/conversations/${id}`, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json: ApiResponse<Conversation> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json: ApiResponse<Conversation> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function generateAudio(id: string): Promise<any> {
   const res = await fetch(`/api/conversations/${id}/generate`, {
     method: 'POST',
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function downloadAudio(id: string): Promise<string> {
-  const res = await fetch(`/api/conversations/${id}/download`)
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data.url
+  const res = await fetch(`/api/conversations/${id}/download`);
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data.url;
 }
 
 interface SortableSentenceProps {
-  sentence: DialogueSentence
-  participants: ConversationParticipant[]
-  tones: string[]
-  emotions: string[]
-  onUpdate: (id: string, updates: Partial<DialogueSentence>) => void
-  onDelete: (id: string) => void
+  sentence: DialogueSentence;
+  participants: ConversationParticipant[];
+  tones: string[];
+  emotions: string[];
+  onUpdate: (id: string, updates: Partial<DialogueSentence>) => void;
+  onDelete: (id: string) => void;
 }
 
-function SortableSentence({ sentence, participants, tones, emotions, onUpdate, onDelete }: SortableSentenceProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sentence.id })
+function SortableSentence({sentence, participants, tones, emotions, onUpdate, onDelete}: SortableSentenceProps) {
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id: sentence.id});
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-  }
+  };
 
-  const participant = participants.find(p => p.role === sentence.participantRole)
+  const participant = participants.find(p => p.role === sentence.participantRole);
 
   return (
     <div
@@ -144,7 +139,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
         isDragging && 'opacity-50 shadow-lg',
         sentence.participantRole === ParticipantRole.Speaker1
           ? 'border-l-4 border-l-blue-500'
-          : 'border-l-4 border-l-green-500',
+          : 'border-l-4 border-l-green-500'
       )}
     >
       {/* Drag Handle */}
@@ -171,7 +166,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
           </div>
           <Textarea
             value={sentence.text}
-            onChange={e => onUpdate(sentence.id, { text: e.target.value })}
+            onChange={e => onUpdate(sentence.id, {text: e.target.value})}
             placeholder="Enter dialogue text..."
             className="min-h-[60px] resize-none"
             rows={2}
@@ -184,7 +179,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
             <Label className="text-xs text-muted-foreground shrink-0">Tone</Label>
             <Select
               value={sentence.tone || '__none__'}
-              onValueChange={value => onUpdate(sentence.id, { tone: value === '__none__' ? '' : value })}
+              onValueChange={value => onUpdate(sentence.id, {tone: value === '__none__' ? '' : value})}
             >
               <SelectTrigger className="w-[130px] h-8 text-xs">
                 <SelectValue placeholder="Select tone" />
@@ -203,7 +198,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
             <Label className="text-xs text-muted-foreground shrink-0">Emotion</Label>
             <Select
               value={sentence.emotion || '__none__'}
-              onValueChange={value => onUpdate(sentence.id, { emotion: value === '__none__' ? '' : value })}
+              onValueChange={value => onUpdate(sentence.id, {emotion: value === '__none__' ? '' : value})}
             >
               <SelectTrigger className="w-[130px] h-8 text-xs">
                 <SelectValue placeholder="Select emotion" />
@@ -231,91 +226,91 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
         <IconTrash className="h-4 w-4" />
       </Button>
     </div>
-  )
+  );
 }
 
 export default function ConversationEditorPage() {
-  const params = useParams()
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const conversationId = params.id as string
+  const params = useParams();
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const conversationId = params.id as string;
 
-  const [participants, setParticipants] = useState<ConversationParticipant[]>([])
-  const [sentences, setSentences] = useState<DialogueSentence[]>([])
-  const [hasChanges, setHasChanges] = useState(false)
-  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false)
-  const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false)
+  const [participants, setParticipants] = useState<ConversationParticipant[]>([]);
+  const [sentences, setSentences] = useState<DialogueSentence[]>([]);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
+  const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  )
+    })
+  );
 
-  const { data: conversation, isLoading } = useQuery({
+  const {data: conversation, isLoading} = useQuery({
     queryKey: ['conversation', conversationId],
     queryFn: () => fetchConversation(conversationId),
-  })
+  });
 
-  const { data: voicesData } = useQuery({
+  const {data: voicesData} = useQuery({
     queryKey: ['voices'],
     queryFn: fetchVoices,
-  })
+  });
 
   useEffect(() => {
     if (conversation) {
-      setParticipants(conversation.participants || [])
-      setSentences(conversation.sentences || [])
+      setParticipants(conversation.participants || []);
+      setSentences(conversation.sentences || []);
     }
-  }, [conversation])
+  }, [conversation]);
 
   const updateMutation = useMutation({
     mutationFn: (data: Partial<Conversation>) => updateConversation(conversationId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] })
-      toast.success('Conversation saved')
-      setHasChanges(false)
+      queryClient.invalidateQueries({queryKey: ['conversation', conversationId]});
+      toast.success('Conversation saved');
+      setHasChanges(false);
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const generateMutation = useMutation({
     mutationFn: () => generateAudio(conversationId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] })
-      toast.success('Audio generated successfully!')
+      queryClient.invalidateQueries({queryKey: ['conversation', conversationId]});
+      toast.success('Audio generated successfully!');
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const handleSave = () => {
-    updateMutation.mutate({ participants, sentences })
-  }
+    updateMutation.mutate({participants, sentences});
+  };
 
   const handleGenerate = async () => {
     // Save first, then generate
     if (hasChanges) {
-      await updateMutation.mutateAsync({ participants, sentences })
+      await updateMutation.mutateAsync({participants, sentences});
     }
-    generateMutation.mutate()
-  }
+    generateMutation.mutate();
+  };
 
   const handleDownload = async () => {
     try {
-      const url = await downloadAudio(conversationId)
-      window.open(url, '_blank')
+      const url = await downloadAudio(conversationId);
+      window.open(url, '_blank');
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message);
     }
-  }
+  };
 
   const handleDownloadResource = async (key: string, name: string) => {
-    // We need a way to get signed url for any key. 
+    // We need a way to get signed url for any key.
     // The existing downloadAudio uses /api/conversations/[id]/download which redirects to audioUrl
     // We might need a generic download endpoint or just use the same pattern.
     // For now, let's create a generic helper or just assume the server exposes a way.
@@ -327,16 +322,16 @@ export default function ConversationEditorPage() {
     // For simplicity, I'll pass - I will implement the UI logic later correctly.
     // Just putting placeholders for now.
     // Update: I'll use a direct link logic handled by a new helper I'll write in a sec.
-  }
+  };
 
   const handleVideoSuccess = () => {
-    queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] })
-  }
+    queryClient.invalidateQueries({queryKey: ['conversation', conversationId]});
+  };
 
   const updateParticipant = (role: ParticipantRole, updates: Partial<ConversationParticipant>) => {
-    setParticipants(prev => prev.map(p => (p.role === role ? { ...p, ...updates } : p)))
-    setHasChanges(true)
-  }
+    setParticipants(prev => prev.map(p => (p.role === role ? {...p, ...updates} : p)));
+    setHasChanges(true);
+  };
 
   const addSentence = (role: ParticipantRole) => {
     const newSentence: DialogueSentence = {
@@ -346,50 +341,50 @@ export default function ConversationEditorPage() {
       tone: '',
       emotion: '',
       order: sentences.length,
-    }
-    setSentences(prev => [...prev, newSentence])
-    setHasChanges(true)
-  }
+    };
+    setSentences(prev => [...prev, newSentence]);
+    setHasChanges(true);
+  };
 
   const updateSentence = (id: string, updates: Partial<DialogueSentence>) => {
-    setSentences(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)))
-    setHasChanges(true)
-  }
+    setSentences(prev => prev.map(s => (s.id === id ? {...s, ...updates} : s)));
+    setHasChanges(true);
+  };
 
   const deleteSentence = (id: string) => {
-    setSentences(prev => prev.filter(s => s.id !== id))
-    setHasChanges(true)
-  }
+    setSentences(prev => prev.filter(s => s.id !== id));
+    setHasChanges(true);
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event
+    const {active, over} = event;
 
     if (over && active.id !== over.id) {
       setSentences(items => {
-        const oldIndex = items.findIndex(i => i.id === active.id)
-        const newIndex = items.findIndex(i => i.id === over.id)
-        const newItems = arrayMove(items, oldIndex, newIndex)
+        const oldIndex = items.findIndex(i => i.id === active.id);
+        const newIndex = items.findIndex(i => i.id === over.id);
+        const newItems = arrayMove(items, oldIndex, newIndex);
         // Update order values
-        return newItems.map((item, index) => ({ ...item, order: index }))
-      })
-      setHasChanges(true)
+        return newItems.map((item, index) => ({...item, order: index}));
+      });
+      setHasChanges(true);
     }
-  }
+  };
 
   const handleGenerateDialogue = (newSentences: DialogueSentence[]) => {
-    setSentences(prev => [...prev, ...newSentences])
-    setHasChanges(true)
-  }
+    setSentences(prev => [...prev, ...newSentences]);
+    setHasChanges(true);
+  };
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <IconLoader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    )
+    );
   }
 
-  const canGenerate = sentences.length > 0 && participants.every(p => p.voiceId) && sentences.every(s => s.text.trim())
+  const canGenerate = sentences.length > 0 && participants.every(p => p.voiceId) && sentences.every(s => s.text.trim());
 
   return (
     <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
@@ -426,7 +421,11 @@ export default function ConversationEditorPage() {
               <DropdownMenuContent align="end">
                 {conversation?.audioUrl && (
                   <DropdownMenuItem asChild>
-                    <a href={`/api/utils/download?key=${conversation.audioUrl}&contentType=audio/mpeg&filename=${conversation.name}.mp3`} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`/api/utils/download?key=${conversation.audioUrl}&contentType=audio/mpeg&filename=${conversation.name}.mp3`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <IconMicrophone className="mr-2 h-4 w-4" />
                       Audio (MP3)
                     </a>
@@ -434,7 +433,11 @@ export default function ConversationEditorPage() {
                 )}
                 {conversation?.videoUrl && (
                   <DropdownMenuItem asChild>
-                    <a href={`/api/utils/download?key=${conversation.videoUrl}&contentType=video/mp4&filename=${conversation.name}.mp4`} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`/api/utils/download?key=${conversation.videoUrl}&contentType=video/mp4&filename=${conversation.name}.mp4`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <IconVideo className="mr-2 h-4 w-4" />
                       Video (MP4)
                     </a>
@@ -442,7 +445,11 @@ export default function ConversationEditorPage() {
                 )}
                 {conversation?.subtitleUrl && (
                   <DropdownMenuItem asChild>
-                    <a href={`/api/utils/download?key=${conversation.subtitleUrl}&contentType=application/json&filename=${conversation.name}.json`} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={`/api/utils/download?key=${conversation.subtitleUrl}&contentType=application/json&filename=${conversation.name}.json`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       <IconFileText className="mr-2 h-4 w-4" />
                       Subtitles (JSON)
                     </a>
@@ -489,14 +496,14 @@ export default function ConversationEditorPage() {
                     'space-y-3 p-3 rounded-lg border',
                     participant.role === ParticipantRole.Speaker1
                       ? 'border-blue-500/30 bg-blue-500/5'
-                      : 'border-green-500/30 bg-green-500/5',
+                      : 'border-green-500/30 bg-green-500/5'
                   )}
                 >
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">Name</Label>
                     <Input
                       value={participant.name}
-                      onChange={e => updateParticipant(participant.role, { name: e.target.value })}
+                      onChange={e => updateParticipant(participant.role, {name: e.target.value})}
                       placeholder="Speaker name"
                     />
                   </div>
@@ -505,11 +512,11 @@ export default function ConversationEditorPage() {
                     <Select
                       value={participant.voiceId}
                       onValueChange={value => {
-                        const voice = voicesData?.voices.find(v => v.voice_id === value)
+                        const voice = voicesData?.voices.find(v => v.voice_id === value);
                         updateParticipant(participant.role, {
                           voiceId: value,
                           voiceName: voice?.name,
-                        })
+                        });
                       }}
                     >
                       <SelectTrigger>
@@ -627,6 +634,6 @@ export default function ConversationEditorPage() {
         conversationId={conversationId}
         onSuccess={handleVideoSuccess}
       />
-    </div >
-  )
+    </div>
+  );
 }

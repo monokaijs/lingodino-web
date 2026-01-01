@@ -1,69 +1,69 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { VocabularyCollection } from '@/lib/types/models/vocabulary-collection'
-import { useState } from 'react'
-import { IconUpload } from '@tabler/icons-react'
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import {toast} from 'sonner';
+import {VocabularyCollection} from '@/lib/types/models/vocabulary-collection';
+import {useState} from 'react';
+import {IconUpload} from '@tabler/icons-react';
 
 const collectionSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   photo: z.string().optional(),
-})
+});
 
-type CollectionFormData = z.infer<typeof collectionSchema>
+type CollectionFormData = z.infer<typeof collectionSchema>;
 
 interface CollectionFormProps {
-  collection?: VocabularyCollection | null
-  onSuccess: () => void
+  collection?: VocabularyCollection | null;
+  onSuccess: () => void;
 }
 
 async function createCollection(data: CollectionFormData): Promise<VocabularyCollection> {
   const res = await fetch('/api/vocabulary-collections', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function updateCollection(id: string, data: CollectionFormData): Promise<VocabularyCollection> {
   const res = await fetch(`/api/vocabulary-collections/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function uploadFile(file: File): Promise<string> {
-  const formData = new FormData()
-  formData.append('file', file)
+  const formData = new FormData();
+  formData.append('file', file);
   const res = await fetch('/api/upload', {
     method: 'POST',
     body: formData,
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data.url
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data.url;
 }
 
-export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
-  const queryClient = useQueryClient()
-  const isEditing = !!collection
-  const [uploading, setUploading] = useState(false)
+export function CollectionForm({collection, onSuccess}: CollectionFormProps) {
+  const queryClient = useQueryClient();
+  const isEditing = !!collection;
+  const [uploading, setUploading] = useState(false);
 
   const form = useForm<CollectionFormData>({
     resolver: zodResolver(collectionSchema),
@@ -72,42 +72,42 @@ export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
       description: collection?.description || '',
       photo: collection?.photo || '',
     },
-  })
+  });
 
   const mutation = useMutation({
     mutationFn: (data: CollectionFormData) =>
       isEditing ? updateCollection(collection._id, data) : createCollection(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['vocabulary-collections'] })
-      toast.success(isEditing ? 'Collection updated successfully' : 'Collection created successfully')
-      onSuccess()
+      queryClient.invalidateQueries({queryKey: ['vocabulary-collections']});
+      toast.success(isEditing ? 'Collection updated successfully' : 'Collection created successfully');
+      onSuccess();
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const onSubmit = (data: CollectionFormData) => {
-    mutation.mutate(data)
-  }
+    mutation.mutate(data);
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     try {
-      setUploading(true)
-      const url = await uploadFile(file)
-      form.setValue('photo', url)
-      toast.success('Photo uploaded successfully')
+      setUploading(true);
+      const url = await uploadFile(file);
+      form.setValue('photo', url);
+      toast.success('Photo uploaded successfully');
     } catch (error: any) {
-      toast.error(error.message || 'Failed to upload photo')
+      toast.error(error.message || 'Failed to upload photo');
     } finally {
-      setUploading(false)
+      setUploading(false);
     }
-  }
+  };
 
-  const photoUrl = form.watch('photo')
+  const photoUrl = form.watch('photo');
 
   return (
     <Form {...form}>
@@ -115,7 +115,7 @@ export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
         <FormField
           control={form.control}
           name="name"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Name</FormLabel>
               <FormControl>
@@ -128,7 +128,7 @@ export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
         <FormField
           control={form.control}
           name="description"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
@@ -141,7 +141,7 @@ export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
         <FormField
           control={form.control}
           name="photo"
-          render={({ field }) => (
+          render={({field}) => (
             <FormItem>
               <FormLabel>Photo</FormLabel>
               <FormControl>
@@ -180,5 +180,5 @@ export function CollectionForm({ collection, onSuccess }: CollectionFormProps) {
         </div>
       </form>
     </Form>
-  )
+  );
 }

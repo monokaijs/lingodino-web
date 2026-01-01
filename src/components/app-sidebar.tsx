@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 import {
   IconBook,
   IconBooks,
@@ -15,11 +15,11 @@ import {
   IconVocabulary,
   IconLanguage,
   IconHeadphones,
-} from '@tabler/icons-react'
+} from '@tabler/icons-react';
 
-import { NavMain } from '@/components/nav-main'
-import { NavSecondary } from '@/components/nav-secondary'
-import { NavUser } from '@/components/nav-user'
+import {NavMain} from '@/components/nav-main';
+import {NavSecondary} from '@/components/nav-secondary';
+import {NavUser} from '@/components/nav-user';
 import {
   Sidebar,
   SidebarContent,
@@ -28,14 +28,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/components/ui/sidebar'
+} from '@/components/ui/sidebar';
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }
 
 const data = {
@@ -49,11 +49,6 @@ const data = {
       title: 'Courses',
       url: '/dashboard/courses',
       icon: IconBooks,
-    },
-    {
-      title: 'Lessons',
-      url: '/dashboard/lessons',
-      icon: IconBook,
     },
     {
       title: 'Exams',
@@ -98,17 +93,17 @@ const data = {
       icon: IconSearch,
     },
   ],
-}
+};
 
-export function AppSidebar({ user, ...props }: AppSidebarProps) {
+export function AppSidebar({user, ...props}: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
+            <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:p-1.5!">
               <a href="/dashboard">
-                <IconInnerShadowTop className="!size-5" />
+                <IconInnerShadowTop className="size-5!" />
                 <span className="text-base font-semibold">LingoDino</span>
               </a>
             </SidebarMenuButton>
@@ -123,5 +118,5 @@ export function AppSidebar({ user, ...props }: AppSidebarProps) {
         <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
-  )
+  );
 }

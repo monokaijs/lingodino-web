@@ -1,70 +1,70 @@
-'use client'
+'use client';
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
-import { Exam } from '@/lib/types/models/exam'
-import { Lesson } from '@/lib/types/models/lesson'
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {Button} from '@/components/ui/button';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {useMutation, useQuery, useQueryClient} from '@tanstack/react-query';
+import {useRouter} from 'next/navigation';
+import {toast} from 'sonner';
+import {Exam} from '@/lib/types/models/exam';
+import {Lesson} from '@/lib/types/models/lesson';
 
 const examSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   description: z.string().optional(),
   lessonId: z.string().min(1, 'Lesson is required'),
-})
+});
 
-type ExamFormData = z.infer<typeof examSchema>
+type ExamFormData = z.infer<typeof examSchema>;
 
 interface ExamFormProps {
-  exam?: Exam
+  exam?: Exam;
 }
 
 async function fetchLessons(): Promise<Lesson[]> {
-  const res = await fetch('/api/lessons')
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch('/api/lessons');
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function createExam(data: ExamFormData): Promise<Exam> {
   const res = await fetch('/api/exams', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function updateExam(id: string, data: ExamFormData): Promise<Exam> {
   const res = await fetch(`/api/exams/${id}`, {
     method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {'Content-Type': 'application/json'},
     body: JSON.stringify(data),
-  })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  });
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
-export function ExamForm({ exam }: ExamFormProps) {
-  const router = useRouter()
-  const queryClient = useQueryClient()
-  const isEditing = !!exam
+export function ExamForm({exam}: ExamFormProps) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const isEditing = !!exam;
 
-  const { data: lessons } = useQuery({
+  const {data: lessons} = useQuery({
     queryKey: ['lessons'],
     queryFn: fetchLessons,
-  })
+  });
 
   const form = useForm<ExamFormData>({
     resolver: zodResolver(examSchema),
@@ -73,23 +73,23 @@ export function ExamForm({ exam }: ExamFormProps) {
       description: exam?.description || '',
       lessonId: exam?.lessonId || '',
     },
-  })
+  });
 
   const mutation = useMutation({
     mutationFn: (data: ExamFormData) => (isEditing ? updateExam(exam._id, data) : createExam(data)),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exams'] })
-      toast.success(isEditing ? 'Exam updated successfully' : 'Exam created successfully')
-      router.push('/dashboard/exams')
+      queryClient.invalidateQueries({queryKey: ['exams']});
+      toast.success(isEditing ? 'Exam updated successfully' : 'Exam created successfully');
+      router.push('/dashboard/exams');
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const onSubmit = (data: ExamFormData) => {
-    mutation.mutate(data)
-  }
+    mutation.mutate(data);
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -103,7 +103,7 @@ export function ExamForm({ exam }: ExamFormProps) {
               <FormField
                 control={form.control}
                 name="lessonId"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Lesson</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -127,7 +127,7 @@ export function ExamForm({ exam }: ExamFormProps) {
               <FormField
                 control={form.control}
                 name="name"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Name</FormLabel>
                     <FormControl>
@@ -140,7 +140,7 @@ export function ExamForm({ exam }: ExamFormProps) {
               <FormField
                 control={form.control}
                 name="description"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel>Description</FormLabel>
                     <FormControl>
@@ -163,5 +163,5 @@ export function ExamForm({ exam }: ExamFormProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

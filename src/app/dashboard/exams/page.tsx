@@ -1,12 +1,12 @@
-'use client'
+'use client';
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { IconPlus, IconEdit, IconTrash } from '@tabler/icons-react'
-import Link from 'next/link'
-import { useState } from 'react'
+import {useQuery, useMutation, useQueryClient} from '@tanstack/react-query';
+import {Button} from '@/components/ui/button';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table';
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
+import {IconPlus, IconEdit, IconTrash} from '@tabler/icons-react';
+import Link from 'next/link';
+import {useState} from 'react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,70 +16,70 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { toast } from 'sonner'
-import { Exam } from '@/lib/types/models/exam'
-import { Lesson } from '@/lib/types/models/lesson'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+} from '@/components/ui/alert-dialog';
+import {toast} from 'sonner';
+import {Exam} from '@/lib/types/models/exam';
+import {Lesson} from '@/lib/types/models/lesson';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
 
 interface ApiResponse<T> {
-  data: T
-  pagination?: any
-  code: number
-  message: string
+  data: T;
+  pagination?: any;
+  code: number;
+  message: string;
 }
 
 async function fetchExams(lessonId?: string): Promise<Exam[]> {
-  const url = lessonId ? `/api/exams?lessonId=${lessonId}` : '/api/exams'
-  const res = await fetch(url)
-  const json: ApiResponse<Exam[]> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const url = lessonId ? `/api/exams?lessonId=${lessonId}` : '/api/exams';
+  const res = await fetch(url);
+  const json: ApiResponse<Exam[]> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function fetchLessons(): Promise<Lesson[]> {
-  const res = await fetch('/api/lessons')
-  const json: ApiResponse<Lesson[]> = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
-  return json.data
+  const res = await fetch('/api/lessons');
+  const json: ApiResponse<Lesson[]> = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
+  return json.data;
 }
 
 async function deleteExam(id: string): Promise<void> {
-  const res = await fetch(`/api/exams/${id}`, { method: 'DELETE' })
-  const json = await res.json()
-  if (json.code !== 200) throw new Error(json.message)
+  const res = await fetch(`/api/exams/${id}`, {method: 'DELETE'});
+  const json = await res.json();
+  if (json.code !== 200) throw new Error(json.message);
 }
 
 export default function ExamsPage() {
-  const queryClient = useQueryClient()
-  const [deleteId, setDeleteId] = useState<string | null>(null)
-  const [lessonFilter, setLessonFilter] = useState<string>('')
+  const queryClient = useQueryClient();
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [lessonFilter, setLessonFilter] = useState<string>('');
 
-  const { data: lessons } = useQuery({
+  const {data: lessons} = useQuery({
     queryKey: ['lessons'],
     queryFn: fetchLessons,
-  })
+  });
 
-  const { data: exams, isLoading } = useQuery({
+  const {data: exams, isLoading} = useQuery({
     queryKey: ['exams', lessonFilter],
     queryFn: () => fetchExams(lessonFilter || undefined),
-  })
+  });
 
   const deleteMutation = useMutation({
     mutationFn: deleteExam,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['exams'] })
-      toast.success('Exam deleted successfully')
-      setDeleteId(null)
+      queryClient.invalidateQueries({queryKey: ['exams']});
+      toast.success('Exam deleted successfully');
+      setDeleteId(null);
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(error.message);
     },
-  })
+  });
 
   const getLessonNameById = (lessonId: string) => {
-    return lessons?.find(l => l._id === lessonId)?.name || 'Unknown'
-  }
+    return lessons?.find(l => l._id === lessonId)?.name || 'Unknown';
+  };
 
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
@@ -173,5 +173,5 @@ export default function ExamsPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

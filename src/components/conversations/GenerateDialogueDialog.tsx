@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import {useState} from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,45 +6,45 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
-import { IconSparkles, IconLoader2 } from '@tabler/icons-react'
-import { ConversationParticipant, DialogueSentence } from '@/lib/types/models/conversation'
-import { toast } from 'sonner'
-import { GeneratedDialogue } from '@/lib/services/openai'
+} from '@/components/ui/dialog';
+import {Button} from '@/components/ui/button';
+import {Label} from '@/components/ui/label';
+import {Input} from '@/components/ui/input';
+import {Textarea} from '@/components/ui/textarea';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select';
+import {useForm} from 'react-hook-form';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {z} from 'zod';
+import {IconSparkles, IconLoader2} from '@tabler/icons-react';
+import {ConversationParticipant, DialogueSentence} from '@/lib/types/models/conversation';
+import {toast} from 'sonner';
+import {GeneratedDialogue} from '@/lib/services/openai';
 
 const generateSchema = z.object({
   sentenceCount: z.coerce.number().min(2, 'Minimum 2 sentences').max(20, 'Maximum 20 sentences'),
   level: z.string().min(1, 'Please select a level'),
   topic: z.string().min(5, 'Topic must be at least 5 characters'),
   model: z.string().min(1, 'Please select a model'),
-})
+});
 
-type GenerateFormValues = z.infer<typeof generateSchema>
+type GenerateFormValues = z.infer<typeof generateSchema>;
 
 interface GenerateDialogueDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  participants: ConversationParticipant[]
-  onGenerate: (sentences: DialogueSentence[]) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  participants: ConversationParticipant[];
+  onGenerate: (sentences: DialogueSentence[]) => void;
 }
 
-export function GenerateDialogueDialog({ open, onOpenChange, participants, onGenerate }: GenerateDialogueDialogProps) {
-  const [isGenerating, setIsGenerating] = useState(false)
+export function GenerateDialogueDialog({open, onOpenChange, participants, onGenerate}: GenerateDialogueDialogProps) {
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const {
     register,
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: {errors},
   } = useForm<GenerateFormValues>({
     resolver: zodResolver(generateSchema) as any,
     defaultValues: {
@@ -53,14 +53,14 @@ export function GenerateDialogueDialog({ open, onOpenChange, participants, onGen
       topic: '',
       model: 'gpt-5.1',
     },
-  })
+  });
 
   // Watch for manual select handling if needed, but we use controlled components with setValue
-  const level = watch('level')
-  const model = watch('model')
+  const level = watch('level');
+  const model = watch('model');
 
   const onSubmit = async (data: GenerateFormValues) => {
-    setIsGenerating(true)
+    setIsGenerating(true);
     try {
       const response = await fetch('/api/conversations/generate-text', {
         method: 'POST',
@@ -71,15 +71,15 @@ export function GenerateDialogueDialog({ open, onOpenChange, participants, onGen
           ...data,
           participants,
         }),
-      })
+      });
 
       if (!response.ok) {
-        const json = await response.json()
-        throw new Error(json.message || 'Failed to generate dialogue')
+        const json = await response.json();
+        throw new Error(json.message || 'Failed to generate dialogue');
       }
 
-      const result = await response.json()
-      const generatedData: GeneratedDialogue = result.data
+      const result = await response.json();
+      const generatedData: GeneratedDialogue = result.data;
 
       // Transform generated sentences to DialogueSentence format
       const newSentences: DialogueSentence[] = generatedData.sentences.map((s, index) => ({
@@ -92,17 +92,17 @@ export function GenerateDialogueDialog({ open, onOpenChange, participants, onGen
         // Optional fields if you have them in your DB schema but not strictly required by UI yet
         // pinyin: s.pinyin,
         // translation: s.translation
-      }))
+      }));
 
-      onGenerate(newSentences)
-      onOpenChange(false)
-      toast.success('Dialogue generated successfully!')
+      onGenerate(newSentences);
+      onOpenChange(false);
+      toast.success('Dialogue generated successfully!');
     } catch (error: any) {
-      toast.error(error.message)
+      toast.error(error.message);
     } finally {
-      setIsGenerating(false)
+      setIsGenerating(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -190,5 +190,5 @@ export function GenerateDialogueDialog({ open, onOpenChange, participants, onGen
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
