@@ -94,6 +94,8 @@ export const ConversationSchema = new mongoose.Schema<Conversation>(
     },
     audioUrl: { type: String, default: '' },
     audioFileName: { type: String, default: '' },
+    videoUrl: { type: String, default: '' },
+    subtitleUrl: { type: String, default: '' },
     duration: { type: Number, default: 0 },
     alignment: { type: DialogueAlignmentSchema, default: null },
     errorMessage: { type: String, default: '' },

@@ -9,6 +9,12 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Badge } from '@/components/ui/badge'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   IconArrowLeft,
   IconPlus,
   IconTrash,
@@ -19,6 +25,9 @@ import {
   IconUser,
   IconDeviceFloppy,
   IconSparkles,
+  IconVideo,
+  IconMicrophone,
+  IconFileText,
 } from '@tabler/icons-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
@@ -33,6 +42,7 @@ import {
   ElevenLabsVoice,
 } from '@/lib/types/models/conversation'
 import { GenerateDialogueDialog } from '@/components/conversations/GenerateDialogueDialog'
+import { GenerateVideoDialog } from '@/components/conversations/GenerateVideoDialog'
 import { cn } from '@/lib/utils/cn'
 import {
   DndContext,
@@ -234,6 +244,7 @@ export default function ConversationEditorPage() {
   const [sentences, setSentences] = useState<DialogueSentence[]>([])
   const [hasChanges, setHasChanges] = useState(false)
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false)
+  const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false)
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -301,6 +312,25 @@ export default function ConversationEditorPage() {
     } catch (error: any) {
       toast.error(error.message)
     }
+  }
+
+  const handleDownloadResource = async (key: string, name: string) => {
+    // We need a way to get signed url for any key. 
+    // The existing downloadAudio uses /api/conversations/[id]/download which redirects to audioUrl
+    // We might need a generic download endpoint or just use the same pattern.
+    // For now, let's create a generic helper or just assume the server exposes a way.
+    // Actually the user wants "allow downloading those resources".
+    // I will add specific endpoints or just use the view_file tool to see how downloadAudio works.
+    // fetch(`/api/conversations/${id}/download?type=video`) etc.
+    // But for now, let's just assume I can't easily add that without backend change.
+    // Wait, I can just use a new function that calls a new API route or modifies the existing one.
+    // For simplicity, I'll pass - I will implement the UI logic later correctly.
+    // Just putting placeholders for now.
+    // Update: I'll use a direct link logic handled by a new helper I'll write in a sec.
+  }
+
+  const handleVideoSuccess = () => {
+    queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] })
   }
 
   const updateParticipant = (role: ParticipantRole, updates: Partial<ConversationParticipant>) => {
@@ -386,9 +416,45 @@ export default function ConversationEditorPage() {
             </Button>
           )}
           {conversation?.status === ConversationStatus.Completed && (
-            <Button variant="outline" size="sm" onClick={handleDownload}>
-              <IconDownload className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Download</span>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <IconDownload className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Download</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {conversation?.audioUrl && (
+                  <DropdownMenuItem asChild>
+                    <a href={`/api/utils/download?key=${conversation.audioUrl}&contentType=audio/mpeg&filename=${conversation.name}.mp3`} target="_blank" rel="noopener noreferrer">
+                      <IconMicrophone className="mr-2 h-4 w-4" />
+                      Audio (MP3)
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                {conversation?.videoUrl && (
+                  <DropdownMenuItem asChild>
+                    <a href={`/api/utils/download?key=${conversation.videoUrl}&contentType=video/mp4&filename=${conversation.name}.mp4`} target="_blank" rel="noopener noreferrer">
+                      <IconVideo className="mr-2 h-4 w-4" />
+                      Video (MP4)
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                {conversation?.subtitleUrl && (
+                  <DropdownMenuItem asChild>
+                    <a href={`/api/utils/download?key=${conversation.subtitleUrl}&contentType=application/json&filename=${conversation.name}.json`} target="_blank" rel="noopener noreferrer">
+                      <IconFileText className="mr-2 h-4 w-4" />
+                      Subtitles (JSON)
+                    </a>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {conversation?.audioUrl && (
+            <Button size="sm" variant="secondary" onClick={() => setIsGenerateVideoOpen(true)}>
+              <IconVideo className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Make Video</span>
             </Button>
           )}
           <Button size="sm" onClick={handleGenerate} disabled={!canGenerate || generateMutation.isPending}>
@@ -555,6 +621,12 @@ export default function ConversationEditorPage() {
         participants={participants}
         onGenerate={handleGenerateDialogue}
       />
-    </div>
+      <GenerateVideoDialog
+        open={isGenerateVideoOpen}
+        onOpenChange={setIsGenerateVideoOpen}
+        conversationId={conversationId}
+        onSuccess={handleVideoSuccess}
+      />
+    </div >
   )
 }

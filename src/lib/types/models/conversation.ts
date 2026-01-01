@@ -37,6 +37,8 @@ export interface Conversation {
   status: ConversationStatus
   audioUrl?: string // R2 key for generated audio
   audioFileName?: string // Original filename
+  videoUrl?: string // R2 key for generated video
+  subtitleUrl?: string // R2 key for generated subtitles
   duration?: number // Audio duration in seconds
   alignment?: DialogueAlignment // Word/character timing for subtitles
   errorMessage?: string // Error message if generation failed
