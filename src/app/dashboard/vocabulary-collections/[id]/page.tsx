@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { IconArrowLeft, IconDownload, IconEye, IconFileUpload, IconLink } from '@tabler/icons-react';
+import { IconArrowLeft, IconDownload, IconEye, IconFileUpload, IconLink, IconClipboard, IconFileExport } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { VocabularyCollection, VocabularyItem } from '@/lib/types/models/vocabulary-collection';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -60,6 +61,7 @@ export default function CollectionDetailPage() {
   const [importTab, setImportTab] = useState('url');
   const [importUrl, setImportUrl] = useState('');
   const [importFile, setImportFile] = useState<File | null>(null);
+  const [importManual, setImportManual] = useState('');
 
   const [selectedItem, setSelectedItem] = useState<VocabularyItem | null>(null);
 
@@ -82,6 +84,8 @@ export default function CollectionDetailPage() {
       setImportDialogOpen(false);
       setImportUrl('');
       setImportFile(null);
+      setImportManual('');
+      setImportFile(null);
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -95,7 +99,7 @@ export default function CollectionDetailPage() {
         return;
       }
       importMutation.mutate({ url: importUrl });
-    } else {
+    } else if (importTab === 'file') {
       if (!importFile) {
         toast.error('Vui lòng chọn tệp');
         return;
@@ -112,7 +116,38 @@ export default function CollectionDetailPage() {
       } catch (e) {
         toast.error('Không thể phân tích tệp JSON');
       }
+    } else {
+      if (!importManual.trim()) {
+        toast.error('Vui lòng nhập JSON');
+        return;
+      }
+      try {
+        const json = JSON.parse(importManual);
+        if (!Array.isArray(json)) {
+          toast.error('JSON không hợp lệ: Gốc phải là một mảng');
+          return;
+        }
+        importMutation.mutate({ data: json });
+      } catch (e) {
+        toast.error('JSON không hợp lệ');
+      }
     }
+  };
+
+  const handleExport = () => {
+    if (!items || items.length === 0) {
+      toast.error('Không có dữ liệu để xuất');
+      return;
+    }
+    const dataStr = JSON.stringify(items, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${collection?.name || 'vocabulary-collection'}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -143,10 +178,16 @@ export default function CollectionDetailPage() {
             <CardTitle>Mục từ vựng</CardTitle>
             <CardDescription>{collection?.itemCount || 0} mục trong bộ sưu tập này</CardDescription>
           </div>
-          <Button onClick={() => setImportDialogOpen(true)}>
-            <IconDownload className="mr-2 h-4 w-4" />
-            Nhập từ JSON
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={handleExport}>
+              <IconDownload className="mr-2 h-4 w-4" />
+              Xuất JSON
+            </Button>
+            <Button onClick={() => setImportDialogOpen(true)}>
+              <IconFileUpload className="mr-2 h-4 w-4" />
+              Nhập từ JSON
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -216,12 +257,15 @@ export default function CollectionDetailPage() {
           </DialogHeader>
 
           <Tabs value={importTab} onValueChange={setImportTab}>
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="url">
                 <IconLink className="mr-2 h-4 w-4" /> URL
               </TabsTrigger>
               <TabsTrigger value="file">
                 <IconFileUpload className="mr-2 h-4 w-4" /> Tệp
+              </TabsTrigger>
+              <TabsTrigger value="manual">
+                <IconClipboard className="mr-2 h-4 w-4" /> Thủ công
               </TabsTrigger>
             </TabsList>
 
@@ -248,6 +292,21 @@ export default function CollectionDetailPage() {
                   onChange={e => setImportFile(e.target.files?.[0] || null)}
                 />
                 <p className="text-xs text-muted-foreground">Chọn tệp JSON từ máy tính của bạn.</p>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="manual" className="space-y-4 pt-4">
+              <div className="space-y-2">
+                <Label htmlFor="import-manual">Dán JSON</Label>
+                <Textarea
+                  id="import-manual"
+                  className="font-mono text-xs"
+                  rows={10}
+                  placeholder='[{"simplified": "...", ...}]'
+                  value={importManual}
+                  onChange={e => setImportManual(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Dán nội dung JSON trực tiếp vào đây.</p>
               </div>
             </TabsContent>
           </Tabs>
