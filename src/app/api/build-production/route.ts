@@ -75,6 +75,8 @@ async function postHandler(request: NextRequest): Promise<BuildResult> {
         grammarCollectionsResult,
         grammarItemsResult,
         conversationsResult,
+        examsResult,
+        examQuestionsResult,
     ] = await Promise.all([
         dbService.course.paginate({}, { page: 1, limit: 1000 }),
         dbService.lesson.paginate({}, { page: 1, limit: 10000 }),
@@ -83,6 +85,8 @@ async function postHandler(request: NextRequest): Promise<BuildResult> {
         dbService.grammarCollection.paginate({}, { page: 1, limit: 1000 }),
         dbService.grammarItem.paginate({}, { page: 1, limit: 100000 }),
         dbService.conversation.paginate({}, { page: 1, limit: 10000 }),
+        dbService.exam.paginate({}, { page: 1, limit: 10000 }),
+        dbService.examQuestion.paginate({}, { page: 1, limit: 100000 }),
     ]);
 
     const courses = coursesResult.docs;
@@ -92,11 +96,32 @@ async function postHandler(request: NextRequest): Promise<BuildResult> {
     const grammarCollections = grammarCollectionsResult.docs;
     const grammarItems = grammarItemsResult.docs;
     const conversations = conversationsResult.docs;
+    const exams = examsResult.docs;
+    const examQuestions = examQuestionsResult.docs;
 
     // Create lookup maps - convert ObjectIds to strings for proper comparison
     const vocabItemsMap = new Map(vocabItems.map(item => [String(item._id), item]));
     const grammarItemsMap = new Map(grammarItems.map(item => [String(item._id), item]));
     const conversationsMap = new Map(conversations.map(conv => [String(conv._id), conv]));
+
+    // Create exam lookup maps - group exams by lessonId and questions by examId
+    const examsByLessonId = new Map<string, typeof exams>();
+    for (const exam of exams) {
+        const lessonId = String(exam.lessonId);
+        if (!examsByLessonId.has(lessonId)) {
+            examsByLessonId.set(lessonId, []);
+        }
+        examsByLessonId.get(lessonId)!.push(exam);
+    }
+
+    const questionsByExamId = new Map<string, typeof examQuestions>();
+    for (const question of examQuestions) {
+        const examId = String(question.examId);
+        if (!questionsByExamId.has(examId)) {
+            questionsByExamId.set(examId, []);
+        }
+        questionsByExamId.get(examId)!.push(question);
+    }
 
     // ===== BUILD NESTED COURSES JSON =====
     const nestedCourses = courses.map(course => {
@@ -158,6 +183,25 @@ async function postHandler(request: NextRequest): Promise<BuildResult> {
                     }
                     : null;
 
+                // Get exams for this lesson
+                const lessonExams = (examsByLessonId.get(String(lesson._id)) || []).map(exam => {
+                    const questions = (questionsByExamId.get(String(exam._id)) || []).map(q => ({
+                        _id: q._id,
+                        type: q.type,
+                        question: q.question,
+                        options: q.options,
+                        answer: q.answer,
+                        file: q.file,
+                    }));
+
+                    return {
+                        _id: exam._id,
+                        name: exam.name,
+                        description: exam.description,
+                        questions,
+                    };
+                });
+
                 return {
                     _id: lesson._id,
                     name: lesson.name,
@@ -166,6 +210,7 @@ async function postHandler(request: NextRequest): Promise<BuildResult> {
                     vocabulary: lessonVocabItems,
                     grammar: lessonGrammarItems,
                     conversation: lessonConversation,
+                    exams: lessonExams,
                 };
             });
 
