@@ -85,7 +85,6 @@ export default function CollectionDetailPage() {
       setImportUrl('');
       setImportFile(null);
       setImportManual('');
-      setImportFile(null);
     },
     onError: (error: Error) => {
       toast.error(error.message);

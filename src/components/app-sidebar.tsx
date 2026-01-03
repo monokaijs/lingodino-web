@@ -79,7 +79,7 @@ const data = {
   navSecondary: [
     {
       title: 'Cài đặt',
-      url: '#',
+      url: '/dashboard/settings',
       icon: IconSettings,
     },
     {

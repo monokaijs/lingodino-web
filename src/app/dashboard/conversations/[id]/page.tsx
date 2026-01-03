@@ -38,6 +38,7 @@ import {
 } from '@/lib/types/models/conversation';
 import { GenerateDialogueDialog } from '@/components/conversations/GenerateDialogueDialog';
 import { GenerateVideoDialog } from '@/components/conversations/GenerateVideoDialog';
+import { ImportDialogueDialog } from '@/components/conversations/ImportDialogueDialog';
 import { cn } from '@/lib/utils/cn';
 import {
   DndContext,
@@ -240,6 +241,7 @@ export default function ConversationEditorPage() {
   const [hasChanges, setHasChanges] = useState(false);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -373,6 +375,12 @@ export default function ConversationEditorPage() {
 
   const handleGenerateDialogue = (newSentences: DialogueSentence[]) => {
     setSentences(prev => [...prev, ...newSentences]);
+    setHasChanges(true);
+  };
+
+  const handleImportDialogue = (newSentences: DialogueSentence[], updatedParticipants: ConversationParticipant[]) => {
+    setSentences(prev => [...prev, ...newSentences]);
+    setParticipants(updatedParticipants);
     setHasChanges(true);
   };
 
@@ -519,7 +527,7 @@ export default function ConversationEditorPage() {
                         });
                       }}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className='w-full'>
                         <SelectValue placeholder="Chọn một giọng đọc" />
                       </SelectTrigger>
                       <SelectContent>
@@ -548,6 +556,14 @@ export default function ConversationEditorPage() {
               >
                 <IconSparkles className="h-4 w-4 mr-2" />
                 Tạo bằng AI
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full justify-start"
+                onClick={() => setIsImportDialogOpen(true)}
+              >
+                <IconFileText className="h-4 w-4 mr-2" />
+                Nhập từ văn bản
               </Button>
               <div className="relative my-3">
                 <div className="absolute inset-0 flex items-center">
@@ -632,6 +648,12 @@ export default function ConversationEditorPage() {
         onOpenChange={setIsGenerateVideoOpen}
         conversationId={conversationId}
         onSuccess={handleVideoSuccess}
+      />
+      <ImportDialogueDialog
+        open={isImportDialogOpen}
+        onOpenChange={setIsImportDialogOpen}
+        participants={participants}
+        onImport={handleImportDialogue}
       />
     </div>
   );

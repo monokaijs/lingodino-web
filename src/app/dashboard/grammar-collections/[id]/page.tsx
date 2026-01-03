@@ -81,7 +81,6 @@ export default function CollectionDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['grammar-items', collectionId] });
       toast.success(`Đã nhập ${data.count} quy tắc ngữ pháp${data.skipped > 0 ? ` (${data.skipped} bỏ qua)` : ''}`);
       setImportDialogOpen(false);
-      setImportDialogOpen(false);
       setImportUrl('');
       setImportJson('');
       setImportFile(null);
