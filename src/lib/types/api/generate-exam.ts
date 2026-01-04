@@ -1,4 +1,4 @@
-import {z} from 'zod';
+import { z } from 'zod';
 
 export const GenerateExamSchema = z.object({
   lessonId: z.string(),
@@ -10,6 +10,7 @@ export const GenerateExamSchema = z.object({
     matching: z.number().min(0).default(2),
     trueFalse: z.number().min(0).default(0),
     shortAnswer: z.number().min(0).default(0),
+    speak: z.number().min(0).default(0),
   }),
 });
 

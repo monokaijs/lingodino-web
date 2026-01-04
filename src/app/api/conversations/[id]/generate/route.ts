@@ -1,14 +1,14 @@
-import {NextRequest} from 'next/server';
-import {withApi} from '@/lib/utils/withApi';
-import {dbService} from '@/lib/services/db';
-import {JWT} from 'next-auth/jwt';
-import {ConversationStatus} from '@/lib/types/models/conversation';
-import {generateDialogue} from '@/lib/services/elevenlabs';
-import {uploadBuffer, makeKey} from '@/lib/services/r2';
+import { NextRequest } from 'next/server';
+import { withApi } from '@/lib/utils/withApi';
+import { dbService } from '@/lib/services/db';
+import { JWT } from 'next-auth/jwt';
+import { ConversationStatus } from '@/lib/types/models/conversation';
+import { generateDialogue } from '@/lib/services/elevenlabs';
+import { uploadBuffer, makeKey } from '@/lib/services/r2';
 
 // POST - Generate dialogue audio
-async function postHandler(request: NextRequest, {params}: {params: Promise<{id: string}>}, decoded?: JWT) {
-  const {id} = await params;
+async function postHandler(request: NextRequest, { params }: { params: Promise<{ id: string }> }, decoded?: JWT) {
+  const { id } = await params;
 
   const conversation = await dbService.conversation.findById(id);
   if (!conversation) {
@@ -41,9 +41,9 @@ async function postHandler(request: NextRequest, {params}: {params: Promise<{id:
 
   // Update status to generating
   await dbService.conversation.update(
-    {_id: id},
-    {status: ConversationStatus.Generating, errorMessage: ''},
-    {new: true}
+    { _id: id },
+    { status: ConversationStatus.Generating, errorMessage: '' },
+    { new: true }
   );
 
   try {
@@ -62,7 +62,7 @@ async function postHandler(request: NextRequest, {params}: {params: Promise<{id:
 
     // Update conversation with audio info and alignment
     const updated = await dbService.conversation.update(
-      {_id: id},
+      { _id: id },
       {
         status: ConversationStatus.Completed,
         audioUrl: key,
@@ -71,26 +71,27 @@ async function postHandler(request: NextRequest, {params}: {params: Promise<{id:
         alignment: result.alignment,
         errorMessage: '',
       },
-      {new: true}
+      { new: true }
     );
 
     return {
       message: 'Audio generated successfully',
       conversation: updated,
+      debug: result.debug,
     };
   } catch (err: any) {
     // Update status to failed
     await dbService.conversation.update(
-      {_id: id},
+      { _id: id },
       {
         status: ConversationStatus.Failed,
         errorMessage: err.message || 'Failed to generate audio',
       },
-      {new: true}
+      { new: true }
     );
 
     throw err;
   }
 }
 
-export const POST = withApi(postHandler, {protected: true});
+export const POST = withApi(postHandler, { protected: true });

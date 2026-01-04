@@ -25,8 +25,9 @@ function getClient(): ElevenLabsClient {
 }
 
 export interface GenerateDialogueResult {
-  audioBuffer: ArrayBuffer;
+  audioBuffer: Buffer | ArrayBuffer;
   alignment: DialogueAlignment;
+  debug?: any;
 }
 
 /**
@@ -287,6 +288,133 @@ function mapSegmentsToTimings(
     }
   }
 
+  // Fix potential timing duplication/collapse at the end (e.g. alignment freeze)
+  // We moved redistribution to after gap-filling in the main loop.
+  return result;
+}
+
+/**
+ * Heuristic to fix chains of words that have been collapsed to 0 duration
+ * by stealing time from the preceding "long" word.
+ */
+function redistributeZeroDurationChains(timings: WordTiming[]): WordTiming[] {
+  if (timings.length < 2) return timings;
+
+  const result = [...timings];
+
+  // Iterate to find chains of 0-duration words
+  let i = 0;
+  while (i < result.length) {
+    if (result[i].start === result[i].end) {
+      // Found a zero-duration word. Check if it's part of a chain.
+      let chainStart = i;
+      let chainEnd = i;
+      while (chainEnd + 1 < result.length && result[chainEnd + 1].start === result[chainEnd + 1].end) {
+        chainEnd++;
+      }
+
+      // We have a chain from [chainStart, chainEnd] of 0-duration words.
+
+      // Strategy 1: Steal from PREVIOUS word (Backward)
+      // Condition: contiguous and previous word is long enough to share.
+      let distributed = false;
+      const prevIdx = chainStart - 1;
+
+      // Heuristic: Check forward first if the "stuck" timestamp matches the NEXT word's start
+      // This handles cases where a block of text is "prepended" to a long segment due to lag.
+      const nextIdx = chainEnd + 1;
+      let useForward = false;
+
+      if (nextIdx < result.length) {
+        const nextWord = result[nextIdx];
+        const chainTime = result[chainStart].start;
+        // If next word starts exactly when chain is stuck, and has significant duration
+        if (Math.abs(nextWord.start - chainTime) < 0.001 && (nextWord.end - nextWord.start) > 0.5) {
+          useForward = true;
+        }
+      }
+
+      // If not strictly better to use forward, try backward first (classic behavior)
+      if (!useForward && prevIdx >= 0) {
+        const prevWord = result[prevIdx];
+        const chainFirst = result[chainStart];
+
+        if (Math.abs(chainFirst.start - prevWord.end) < 0.001 && (prevWord.end - prevWord.start) > 0.1) {
+          // Backward distribution
+          const groupStart = prevWord.start;
+          const groupEnd = prevWord.end;
+          const totalDuration = groupEnd - groupStart;
+
+          let totalLen = prevWord.word.length;
+          for (let k = chainStart; k <= chainEnd; k++) totalLen += result[k].word.length;
+
+          if (totalLen > 0) {
+            let currentT = groupStart;
+            // Update Previous Word
+            const prevLen = prevWord.word.length;
+            const prevDur = totalDuration * (prevLen / totalLen);
+            prevWord.end = currentT + prevDur;
+            currentT += prevDur;
+
+            // Update Chain Words
+            for (let k = chainStart; k <= chainEnd; k++) {
+              const wLen = result[k].word.length;
+              const wDur = totalDuration * (wLen / totalLen);
+              result[k].start = currentT;
+              result[k].end = currentT + wDur;
+              currentT += wDur;
+            }
+            // Ensure precise end match
+            result[chainEnd].end = groupEnd;
+            distributed = true;
+          }
+        }
+      }
+
+      // Strategy 2: Steal from NEXT word (Forward)
+      if (!distributed && nextIdx < result.length) {
+        const nextWord = result[nextIdx];
+        const chainLast = result[chainEnd];
+
+        if (Math.abs(nextWord.start - chainLast.end) < 0.001 && (nextWord.end - nextWord.start) > 0.1) {
+          // Forward distribution
+          // Group: [...ChainWords, NextWord]
+          const groupStart = chainLast.start; // Matches nextWord.start initially
+          const groupEnd = nextWord.end;
+          const totalDuration = groupEnd - groupStart;
+
+          let totalLen = nextWord.word.length;
+          for (let k = chainStart; k <= chainEnd; k++) totalLen += result[k].word.length;
+
+          if (totalLen > 0) {
+            let currentT = groupStart;
+            // Update Chain Words
+            for (let k = chainStart; k <= chainEnd; k++) {
+              const wLen = result[k].word.length;
+              const wDur = totalDuration * (wLen / totalLen);
+              result[k].start = currentT;
+              result[k].end = currentT + wDur;
+              currentT += wDur;
+            }
+
+            // Update Next Word
+            const nextLen = nextWord.word.length;
+            const nextDur = totalDuration * (nextLen / totalLen);
+            nextWord.start = currentT;
+            // Ensure precise end match
+            // nextWord.end matches groupEnd already
+          }
+          distributed = true;
+        }
+      }
+
+      // Move i past this chain
+      i = chainEnd + 1;
+    } else {
+      i++;
+    }
+  }
+
   return result;
 }
 
@@ -355,11 +483,119 @@ async function streamToBuffer(stream: ReadableStream<Uint8Array>): Promise<Array
 }
 
 /**
+ * Fix aligned voice segments using a "Synchronization Point" strategy.
+ * ElevenLabs timestamps can be erratic (too fast or too slow locally).
+ * We calculate an expected "Global Speaking Rate" and find points where the 
+ * actual timestamps align with the expected cumulative time (Sync Points).
+ * We then redistribute the time between Sync Points uniformly based on text length.
+ */
+function fixVoiceSegmentTimings(
+  voiceSegments: any[],
+  sentences: DialogueSentence[]
+): any[] {
+  if (!voiceSegments || voiceSegments.length === 0) return [];
+  if (voiceSegments.length !== sentences.length) {
+    // Mismatch in counts, return raw to avoid further damage? 
+    // Or try to handle? For now, return raw.
+    return voiceSegments;
+  }
+
+  const fixed = JSON.parse(JSON.stringify(voiceSegments));
+
+  // 1. Calculate stats
+  const totalDuration = fixed[fixed.length - 1].endTimeSeconds - fixed[0].startTimeSeconds;
+
+  // Calculate text lengths (used for weights)
+  // We can strip emotion tags if we think they don't count for time, 
+  // but generally sentence text length is good proxy.
+  const lengths = sentences.map(s => s.text.length); // Use raw length including punctuation
+  const totalChars = lengths.reduce((a, b) => a + b, 0);
+
+  if (totalChars === 0 || totalDuration <= 0) return fixed;
+
+  const avgSecondsPerChar = totalDuration / totalChars;
+
+  // 2. Identification of Sync Points
+  // A Sync Point is an index i where `endTime[i]` is "close enough" to `expectedEndTime[i]`
+  // We always force index -1 (start) and index length-1 (end) as Sync Points.
+
+  const syncPoints: number[] = [-1]; // Store INDICES of segments that end at a sync point.
+
+  let cumulativeChars = 0;
+  const TOLERANCE = 1.5; // 1.5 seconds tolerance.
+
+  for (let i = 0; i < fixed.length - 1; i++) {
+    cumulativeChars += lengths[i];
+    const expectedEnd = fixed[0].startTimeSeconds + (cumulativeChars * avgSecondsPerChar);
+    const actualEnd = fixed[i].endTimeSeconds;
+
+    // Check if this point is "sane" enough to be an anchor.
+    // We also check local plausibility: segment shouldn't be suspiciously short/fast relative to itself.
+    const localDur = fixed[i].endTimeSeconds - fixed[i].startTimeSeconds;
+    const localRate = localDur / lengths[i];
+    const isLocallyExtreme = localRate < (avgSecondsPerChar * 0.2) || localRate > (avgSecondsPerChar * 3.0);
+
+    if (!isLocallyExtreme && Math.abs(actualEnd - expectedEnd) < TOLERANCE) {
+      syncPoints.push(i);
+    }
+  }
+
+  syncPoints.push(fixed.length - 1); // Always include the last one
+
+  // 3. Redistribute between Sync Points
+  for (let k = 0; k < syncPoints.length - 1; k++) {
+    const startIndex = syncPoints[k] + 1; // First segment in this block
+    const endIndex = syncPoints[k + 1];     // Last segment in this block (inclusive)
+
+    // If block has only 1 item, it's already "synced" (it is its own anchor), skip
+    if (startIndex >= endIndex) continue;
+
+    // Calculate total time and total chars in this block
+    const blockStartTime = (startIndex === 0) ? fixed[0].startTimeSeconds : fixed[syncPoints[k]].endTimeSeconds;
+    const blockEndTime = fixed[endIndex].endTimeSeconds;
+    const blockDuration = blockEndTime - blockStartTime;
+
+    let blockChars = 0;
+    for (let j = startIndex; j <= endIndex; j++) {
+      blockChars += lengths[j];
+    }
+
+    if (blockChars > 0) {
+      let currentT = blockStartTime;
+      for (let j = startIndex; j <= endIndex; j++) {
+        const weight = lengths[j] / blockChars;
+        const dur = blockDuration * weight;
+
+        fixed[j].startTimeSeconds = currentT;
+        fixed[j].endTimeSeconds = currentT + dur;
+
+        // Invalidate char indices as we are drifting from the "truth"
+        // This forces the robust fallback in the main loop
+        fixed[j].characterStartIndex = 0;
+        fixed[j].characterEndIndex = 0;
+
+        currentT += dur;
+      }
+      // Snap last one to exact block end
+      fixed[endIndex].endTimeSeconds = blockEndTime;
+    }
+  }
+
+  return fixed;
+}
+
+import { spawn } from 'child_process';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+
+/**
  * Generate dialogue audio from conversation sentences with word timings
  */
 export async function generateDialogue(
   sentences: DialogueSentence[],
-  participants: ConversationParticipant[]
+  participants: ConversationParticipant[],
+  speed: number = 1.0
 ): Promise<GenerateDialogueResult> {
   const client = getClient();
 
@@ -398,7 +634,10 @@ export async function generateDialogue(
     // - alignment: GLOBAL character timing for all text combined
     // - normalizedAlignment: GLOBAL normalized character timing
     const audioBase64 = response.audioBase64;
-    const voiceSegments = response.voiceSegments || [];
+    const rawVoiceSegments = response.voiceSegments || [];
+    // Fix broken voice segments (collapsed timings)
+    const voiceSegments = fixVoiceSegmentTimings(rawVoiceSegments, sortedSentences);
+
     // Use normalized alignment if available (handles text normalization), otherwise use regular alignment
     const globalAlignment = response.normalizedAlignment || response.alignment;
 
@@ -408,114 +647,88 @@ export async function generateDialogue(
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
-    const audioBuffer = bytes.buffer;
+    let audioBuffer = Buffer.from(bytes);
     // Build alignment from voice segments
     const segments: DialogueSegment[] = [];
     let totalDuration = 0;
 
-    let globalCharIndex = 0; // Track position in global alignment
-    for (let i = 0; i < voiceSegments.length; i++) {
-      const voiceSegment = voiceSegments[i];
+    // We iterate sentences and use the corresponding voiceSegment to define strict boundaries
+    for (let i = 0; i < sortedSentences.length; i++) {
       const sentence = sortedSentences[i];
+      const voiceSegment = voiceSegments[i];
 
-      if (!sentence || !voiceSegment) continue;
+      if (!voiceSegment) {
+        // Should not happen if inputs matched 1:1
+        continue;
+      }
 
-      // Get segment timing directly from voiceSegment
-      const startTime = voiceSegment.startTimeSeconds;
-      const endTime = voiceSegment.endTimeSeconds;
-
-      // Extract word timings
+      let startTime = voiceSegment.startTimeSeconds;
+      let endTime = voiceSegment.endTimeSeconds;
       let words: WordTiming[] = [];
+
+      // strict isolation: use the indices provided by the API
+      const charStart = voiceSegment.characterStartIndex;
+      const charEnd = voiceSegment.characterEndIndex;
+
       if (
         globalAlignment?.characters &&
         globalAlignment?.characterStartTimesSeconds &&
-        globalAlignment?.characterEndTimesSeconds
+        globalAlignment?.characterEndTimesSeconds &&
+        charEnd > charStart
       ) {
-        // Find where this sentence starts in the global alignment
-        // We look for the sequence of characters that roughly matches sentence.text
-        // starting from globalCharIndex.
+        // Slice global alignment for this specific sentence
+        const segmentChars = globalAlignment.characters.slice(charStart, charEnd);
+        const segmentStartTimes = globalAlignment.characterStartTimesSeconds.slice(charStart, charEnd);
+        const segmentEndTimes = globalAlignment.characterEndTimesSeconds.slice(charStart, charEnd);
 
-        const sentenceTextRaw = sentence.text; // "你好，你叫什么名字？"
-
-        // We need to advance globalCharIndex until we match the start of this sentence.
-        // But ElevenLabs alignment characters might be slightly different (e.g. simplified, no punct).
-        // We'll trust that the sequence follows.
-
-        // Heuristic:
-        // Match the non-punctuation characters of sentence against globalAlignment.characters
-        // to find the range [start, end).
-
-        let matchStartIndex = globalCharIndex;
-        let matchEndIndex = globalCharIndex;
-
-        let sentenceCharIdx = 0;
-        let alignIdx = globalCharIndex;
-
-        // Scan forward to map sentence chars to alignment chars
-        while (
-          sentenceCharIdx < sentenceTextRaw.length &&
-          alignIdx < globalAlignment.characters.length
-        ) {
-          const sChar = sentenceTextRaw[sentenceCharIdx];
-          const aChar = globalAlignment.characters[alignIdx];
-
-          // Skip whitespace/punct in sentence that might not be in alignment
-          if (/[.,;?!，。；？！"'：\[\]\s]/.test(sChar)) {
-            sentenceCharIdx++;
-            continue;
-          }
-
-          // Skip whitespace/brackets in alignment
-          if (aChar === '[') {
-            while (alignIdx < globalAlignment.characters.length && globalAlignment.characters[alignIdx] !== ']') {
-              alignIdx++;
-            }
-            if (alignIdx < globalAlignment.characters.length) alignIdx++;
-            continue;
-          }
-          if (/\s/.test(aChar)) {
-            alignIdx++;
-            continue;
-          }
-
-          // Compare
-          if (sChar.toLowerCase() === aChar.toLowerCase()) {
-            matchEndIndex = alignIdx + 1; // End is exclusive
-            sentenceCharIdx++;
-            alignIdx++;
-          } else {
-            // Mismatch?
-            // E.g. ElevenLabs normalized text differently?
-            // Assume Alignment skips this char? Or Sentence has extra?
-            // Let's assume Sentence has extra char and skip it
-            sentenceCharIdx++;
-            // If we skip too many without match, we might have lost track, but let's hope sequential works.
-          }
-        }
-
-        // Update globalCharIndex for next sentence to start AFTER this one
-        globalCharIndex = alignIdx;
-
-        // Slice the global arrays using the discovered indices
-        const segmentChars = globalAlignment.characters.slice(matchStartIndex, matchEndIndex);
-        const segmentStartTimes = globalAlignment.characterStartTimesSeconds.slice(matchStartIndex, matchEndIndex);
-        const segmentEndTimes = globalAlignment.characterEndTimesSeconds.slice(matchStartIndex, matchEndIndex);
-
+        // Generate Words within this slice
         if (sentence.segments && sentence.segments.length > 0) {
           words = mapSegmentsToTimings(sentence.segments, segmentChars, segmentStartTimes, segmentEndTimes);
 
-          // Validate timings: if > 80% of words have 0 duration, it's likely broken alignment or failed mapping
-          const zeroDurationCount = words.filter(w => w.start === w.end).length;
-          const isInvalid = words.length > 2 && (zeroDurationCount / words.length > 0.8);
+          // Fix: If mapSegmentsToTimings returns 0-duration words due to bad alignment in this slice,
+          // or if the words don't cover the full duration, we might need to adjust.
+          // But relying on mapSegmentsToTimings is usually best if alignment exists.
 
-          if (isInvalid || words.length === 0) {
-            console.warn(`Creating fallback timings for sentence ${sentence.id} due to invalid alignment data`);
+          // Sanity check: if we have 0 words but we have segments, something went wrong.
+          // Or if almost all words are 0 duration.
+          const validWords = words.filter(w => w.end > w.start).length;
+          if (words.length > 0 && validWords === 0) {
+            // Fallback to distribution if alignment failed completely for this sentence
             words = distributeTimings(sentence.segments, startTime, endTime);
           }
         } else {
           words = extractWordTimings(segmentChars, segmentStartTimes, segmentEndTimes);
         }
       }
+
+      // Fallback if no words generated (e.g. alignment missing)
+      if (words.length === 0 && sentence.segments && sentence.segments.length > 0) {
+        words = distributeTimings(sentence.segments, startTime, endTime);
+      }
+
+      // Local Post-process for this sentence: Fill gaps to ensure words cover the full voiceSegment duration
+      if (words.length > 0) {
+        // Clamp start
+        if (words[0].start < startTime) words[0].start = startTime;
+        if (words[0].start > startTime) words[0].start = startTime; // Force snap to start
+
+        // Fill internal gaps
+        for (let j = 0; j < words.length - 1; j++) {
+          // If there is a gap between words, close it
+          if (words[j].end < words[j + 1].start) {
+            words[j].end = words[j + 1].start;
+          }
+          // If overlaps, fix it? mapSegmentsToTimings shouldn't produce overlaps usually.
+        }
+
+        // Clamp/Snap end
+        const lastIdx = words.length - 1;
+        if (words[lastIdx].end < endTime) words[lastIdx].end = endTime; // Extend last word to sentence end
+        if (words[lastIdx].end > endTime + 0.5) words[lastIdx].end = endTime; // detailed clip if way over?
+      }
+
+      // Redistribute purely within this sentence
+      words = redistributeZeroDurationChains(words);
 
       segments.push({
         sentenceId: sentence.id,
@@ -525,10 +738,53 @@ export async function generateDialogue(
         endTime,
         words,
       });
+    }
 
-      if (endTime > totalDuration) {
-        totalDuration = endTime;
-      }
+    // Correct timestamps if speed is not 1.0
+    if (speed !== 1.0) {
+      const scale = 1 / speed;
+
+      // 1. Scale Alignment
+      totalDuration *= scale;
+      segments.forEach(seg => {
+        seg.startTime *= scale;
+        seg.endTime *= scale;
+        seg.words.forEach(w => {
+          w.start *= scale;
+          w.end *= scale;
+        });
+      });
+
+      // 2. Process Audio with FFmpeg
+      const tempInput = path.join(os.tmpdir(), `input-${Date.now()}-${Math.random()}.mp3`);
+      const tempOutput = path.join(os.tmpdir(), `output-${Date.now()}-${Math.random()}.mp3`);
+
+      fs.writeFileSync(tempInput, audioBuffer);
+
+      await new Promise<void>((resolve, reject) => {
+        const ffmpeg = spawn('ffmpeg', [
+          '-i', tempInput,
+          '-filter:a', `atempo=${speed}`,
+          '-vn', // No video
+          '-y',  // Overwrite
+          tempOutput
+        ]);
+
+        ffmpeg.on('close', (code) => {
+          if (code === 0) resolve();
+          else reject(new Error(`FFmpeg process exited with code ${code}`));
+        });
+
+        ffmpeg.on('error', (err) => reject(err));
+      });
+
+      audioBuffer = fs.readFileSync(tempOutput);
+
+      // Cleanup
+      try {
+        fs.unlinkSync(tempInput);
+        fs.unlinkSync(tempOutput);
+      } catch (e) { console.error('Error cleaning up temp files', e); }
     }
 
     return {
@@ -537,7 +793,12 @@ export async function generateDialogue(
         segments,
         totalDuration,
       },
+      debug: {
+        voiceSegments,
+        globalAlignment,
+      }
     };
+
   } catch (error: any) {
     // If convertWithTimestamps fails, fall back to regular convert
     console.warn('textToDialogue.convertWithTimestamps failed, falling back to convert:', error.message);
@@ -547,7 +808,7 @@ export async function generateDialogue(
       modelId: 'eleven_v3',
     });
 
-    const audioBuffer = await streamToBuffer(audioStream);
+    let audioBuffer = await streamToBuffer(audioStream);
 
     // Create basic alignment without word timings
     const segments: DialogueSegment[] = sortedSentences.map(sentence => ({
@@ -558,6 +819,34 @@ export async function generateDialogue(
       endTime: 0,
       words: [],
     }));
+
+    // Even in fallback, we should apply speed if requested
+    if (speed !== 1.0) {
+      // We don't have timings to scale (they are 0), but we should process audio
+      const tempInput = path.join(os.tmpdir(), `fallback-input-${Date.now()}.mp3`);
+      const tempOutput = path.join(os.tmpdir(), `fallback-output-${Date.now()}.mp3`);
+
+      fs.writeFileSync(tempInput, audioBuffer);
+
+      try {
+        await new Promise<void>((resolve, reject) => {
+          const ffmpeg = spawn('ffmpeg', [
+            '-i', tempInput,
+            '-filter:a', `atempo=${speed}`,
+            '-vn', '-y', tempOutput
+          ]);
+          ffmpeg.on('close', (code) => {
+            if (code === 0) resolve();
+            else reject(new Error(`FFmpeg exited with code ${code}`));
+          });
+        });
+        audioBuffer = fs.readFileSync(tempOutput);
+        fs.unlinkSync(tempInput);
+        fs.unlinkSync(tempOutput);
+      } catch (err) {
+        console.warn('Failed to apply speed in fallback:', err);
+      }
+    }
 
     return {
       audioBuffer,

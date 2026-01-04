@@ -1,14 +1,14 @@
-import {NextRequest} from 'next/server';
-import {withApi} from '@/lib/utils/withApi';
-import {UserRole} from '@/lib/types/models/user';
-import {Lesson} from '@/lib/types/models/lesson';
-import {GrammarItem} from '@/lib/types/models/grammar';
-import {Conversation} from '@/lib/types/models/conversation';
-import {Exam} from '@/lib/types/models/exam';
-import {GenerateExamSchema} from '@/lib/types/api/generate-exam';
-import {dbService} from '@/lib/services/db';
+import { NextRequest } from 'next/server';
+import { withApi } from '@/lib/utils/withApi';
+import { UserRole } from '@/lib/types/models/user';
+import { Lesson } from '@/lib/types/models/lesson';
+import { GrammarItem } from '@/lib/types/models/grammar';
+import { Conversation } from '@/lib/types/models/conversation';
+import { Exam } from '@/lib/types/models/exam';
+import { GenerateExamSchema } from '@/lib/types/api/generate-exam';
+import { dbService } from '@/lib/services/db';
 import OpenAI from 'openai';
-import {VocabularyItem} from "@/lib/types/models/vocabulary-collection";
+import { VocabularyItem } from "@/lib/types/models/vocabulary-collection";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -18,7 +18,7 @@ export const POST = withApi(
   async (request: NextRequest) => {
     const body = await request.json();
     const validated = GenerateExamSchema.parse(body);
-    const {lessonId, name, instructions, questionCounts} = validated;
+    const { lessonId, name, instructions, questionCounts } = validated;
 
     // 1. Fetch Lesson Data
     const lesson = (await dbService.lesson.findById(lessonId)) as Lesson;
@@ -55,6 +55,7 @@ export const POST = withApi(
       multipleChoice: questionCounts.multipleChoice + (questionCounts.matching || 0),
       trueFalse: questionCounts.trueFalse,
       shortAnswer: questionCounts.shortAnswer + (questionCounts.fillInBlank || 0),
+      speak: questionCounts.speak || 0,
     };
 
     const totalQuestions = Object.values(adjustedCounts).reduce((a, b) => a + b, 0);
@@ -87,12 +88,34 @@ export const POST = withApi(
     - Multiple Choice: ${adjustedCounts.multipleChoice} (Use this for matching-style questions too)
     - True/False: ${adjustedCounts.trueFalse}
     - Short Answer: ${adjustedCounts.shortAnswer} (Use this for fill-in-the-blank)
+    - Speak: ${adjustedCounts.speak} (Voice input questions - answers must be VERY simple)
     
     Total Questions: ${totalQuestions}.
     
     Ensure questions test the specific vocabulary and grammar points provided.
+    
+    CRITICAL OBJECTIVE:
+    - You are generating questions for a Chinese Language Learning App.
+    - Questions must test **Language Proficiency**: Reading Comprehension, Vocabulary Usage, Grammar Correctness, and Translation.
+    - Do NOT generate general knowledge/trivia questions (e.g. "What year was...").
+    - All content must be derived strictly from the provided Transcript, Vocabulary, and Grammar points.
+    
     Language: Use ONLY **Vietnamese** and **Chinese**. Instructions and questions must be in Vietnamese or Chinese. Do NOT use English.
     Do not include hints in the question content.
+    
+    IMPORTANT for Mobile Friendliness:
+    - For Short Answer / Fill-in-the-blank:
+      - The answer MUST be easy to type on mobile.
+      - Do NOT require mixed language input (e.g. never ask for 'Chinese + Pinyin' combined).
+      - The expected answer should be a single word or short phrase in ONE language (Chinese OR Pinyin OR Vietnamese).
+      - Avoid requiring punctuation in the answer if possible.
+    
+    IMPORTANT for Speak Questions:
+    - The answer MUST be a single Chinese word or very short phrase (1-3 characters maximum).
+    - Questions should ask the user to pronounce/say a specific vocabulary word.
+    - Examples: "Hãy đọc từ có nghĩa là 'xin chào'" with answer "你好".
+    - NEVER ask for long sentences - only single words or very short phrases.
+    - The answer must be simple enough for speech recognition to reliably match.
     `;
 
     // 4. Call OpenAI (Strict JSON Schema)
@@ -103,7 +126,7 @@ export const POST = withApi(
           role: 'system',
           content:
             systemPrompt +
-            "\n\nIMPORTANT: For 'correctAnswer', ensure it matches one of the options for MC/TF, or is the text answer for Short Answer.",
+            "\n\nIMPORTANT: For 'correctAnswer', ensure it matches one of the options for MC/TF, or is the text answer for Short Answer/Speak.",
         },
       ],
       response_format: {
@@ -121,11 +144,11 @@ export const POST = withApi(
                   properties: {
                     type: {
                       type: 'string',
-                      enum: ['multiple_choice', 'true_false', 'short_answer'],
+                      enum: ['multiple_choice', 'true_false', 'short_answer', 'speak'],
                     },
-                    content: {type: 'string'},
-                    options: {type: 'array', items: {type: 'string'}},
-                    correctAnswer: {type: 'string'},
+                    content: { type: 'string' },
+                    options: { type: 'array', items: { type: 'string' } },
+                    correctAnswer: { type: 'string' },
                   },
                   required: ['type', 'content', 'options', 'correctAnswer'],
                   additionalProperties: false,
@@ -185,5 +208,5 @@ export const POST = withApi(
       message: 'Exam generated successfully',
     };
   },
-  {protected: true, roles: [UserRole.Admin]}
+  { protected: true, roles: [UserRole.Admin] }
 );

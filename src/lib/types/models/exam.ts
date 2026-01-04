@@ -1,4 +1,4 @@
-import {Attachment} from '@/lib/types/models/attachment';
+import { Attachment } from '@/lib/types/models/attachment';
 
 export interface Exam {
   _id: string;
@@ -14,6 +14,7 @@ export enum ExamQuestionType {
   TrueFalse = 'true_false',
   ShortAnswer = 'short_answer',
   LongAnswer = 'long_answer',
+  Speak = 'speak',
   ListenAndRepeat = 'listen_and_repeat',
   ListenAndAnswer = 'listen_and_answer',
   ListenAndWrite = 'listen_and_write',
@@ -23,6 +24,7 @@ export enum ExamQuestionType {
 export const ExamQuestionTypeManualAnswer = [
   ExamQuestionType.ShortAnswer,
   ExamQuestionType.LongAnswer,
+  ExamQuestionType.Speak,
   ExamQuestionType.ListenAndWrite,
 ];
 

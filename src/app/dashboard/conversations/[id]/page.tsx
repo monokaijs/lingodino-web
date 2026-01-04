@@ -9,6 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
+import { SentenceEditorDialog } from '@/components/conversations/SentenceEditorDialog';
 import {
   IconArrowLeft,
   IconPlus,
@@ -23,6 +26,7 @@ import {
   IconVideo,
   IconMicrophone,
   IconFileText,
+  IconPencil,
 } from '@tabler/icons-react';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
@@ -58,6 +62,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ConversationPlayer } from '@/components/conversations/ConversationPlayer';
 
 interface ApiResponse<T> {
   data: T;
@@ -97,9 +102,11 @@ async function updateConversation(id: string, data: Partial<Conversation>): Prom
   return json.data;
 }
 
-async function generateAudio(id: string): Promise<any> {
+async function generateAudio(id: string, speed: number = 1.0): Promise<any> {
   const res = await fetch(`/api/conversations/${id}/generate`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ speed }),
   });
   const json = await res.json();
   if (json.code !== 200) throw new Error(json.message);
@@ -113,23 +120,6 @@ async function downloadAudio(id: string): Promise<string> {
   return json.data.url;
 }
 
-// Helper for auto-resizing input
-const AutoResizeInput = ({ value, className, placeholder, ...props }: any) => {
-  return (
-    <div className="inline-grid items-center justify-items-center relative">
-      <span className={cn("invisible col-start-1 row-start-1 whitespace-pre px-2 pointer-events-none min-w-[2ch]", className)}>
-        {value || placeholder || ''}
-      </span>
-      <Input
-        value={value}
-        placeholder={placeholder}
-        className={cn("col-start-1 row-start-1 w-full min-w-0 text-center px-1 resize-none overflow-hidden", className)}
-        {...props}
-      />
-    </div>
-  );
-};
-
 interface SortableSentenceProps {
   sentence: DialogueSentence;
   participants: ConversationParticipant[];
@@ -137,9 +127,12 @@ interface SortableSentenceProps {
   emotions: string[];
   onUpdate: (id: string, updates: Partial<DialogueSentence>) => void;
   onDelete: (id: string) => void;
+  onEdit: (sentence: DialogueSentence) => void;
+  activeSegmentIndex?: number;
+  isActive?: boolean;
 }
 
-function SortableSentence({ sentence, participants, tones, emotions, onUpdate, onDelete }: SortableSentenceProps) {
+function SortableSentence({ sentence, participants, tones, emotions, onUpdate, onDelete, onEdit, activeSegmentIndex, isActive }: SortableSentenceProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: sentence.id });
 
   const style = {
@@ -154,8 +147,9 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
       ref={setNodeRef}
       style={style}
       className={cn(
-        'group relative flex gap-3 p-4 rounded-lg border bg-card transition-all',
+        'group relative flex gap-3 p-4 rounded-lg border bg-card transition-all duration-300',
         isDragging && 'opacity-50 shadow-lg',
+        isActive && 'ring-2 ring-primary border-primary bg-primary/5',
         sentence.participantRole === ParticipantRole.Speaker1
           ? 'border-l-4 border-l-blue-500'
           : 'border-l-4 border-l-green-500'
@@ -165,7 +159,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
       <button
         {...attributes}
         {...listeners}
-        className="shrink-0 cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded"
+        className="shrink-0 cursor-grab active:cursor-grabbing touch-none p-1 hover:bg-muted rounded self-start mt-1"
       >
         <IconGripVertical className="h-5 w-5 text-muted-foreground" />
       </button>
@@ -174,7 +168,7 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
       <div className="flex-1 space-y-3">
         {/* Speaker & Text */}
         <div className="flex flex-col gap-3">
-          <div className="shrink-0">
+          <div className="shrink-0 flex justify-between items-start">
             <Badge
               variant={sentence.participantRole === ParticipantRole.Speaker1 ? 'default' : 'secondary'}
               className="min-w-[80px] justify-center"
@@ -182,75 +176,45 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
               <IconUser className="h-3 w-3 mr-1" />
               {participant?.name || sentence.participantRole}
             </Badge>
-          </div>
-
-          {/* Segment Editor */}
-          <div className="flex flex-wrap gap-2 items-start bg-muted/30 p-2 rounded-lg border min-h-[80px]">
-            {sentence.segments?.map((segment, idx) => (
-              <div key={idx} className="group/segment relative flex flex-col items-center gap-0.5 min-w-fit p-1 rounded hover:bg-muted/50 transition-colors">
-                {/* Pinyin (Top) - Only show border on hover/focus */}
-                <AutoResizeInput
-                  value={segment.pinyin}
-                  onChange={(e: any) => {
-                    const newSegments = [...(sentence.segments || [])];
-                    newSegments[idx] = { ...newSegments[idx], pinyin: e.target.value };
-                    onUpdate(sentence.id, { segments: newSegments });
-                  }}
-                  className="h-6 text-xs text-center px-1 text-muted-foreground font-mono bg-transparent border-transparent shadow-none hover:border-input focus-visible:border-input focus-visible:ring-1 focus-visible:bg-background"
-                  placeholder="Pinyin"
-                />
-
-                {/* Text (Middle) - Main */}
-                <AutoResizeInput
-                  value={segment.text}
-                  onChange={(e: any) => {
-                    const newSegments = [...(sentence.segments || [])];
-                    newSegments[idx] = { ...newSegments[idx], text: e.target.value };
-                    const newText = newSegments.map(s => s.text).join('');
-                    onUpdate(sentence.id, { segments: newSegments, text: newText });
-                  }}
-                  className="h-8 text-lg font-medium text-center px-1 bg-transparent border-transparent shadow-none hover:border-input focus-visible:border-input focus-visible:ring-1 focus-visible:bg-background"
-                  placeholder="Từ"
-                />
-
-                {/* Translation (Bottom) */}
-                <AutoResizeInput
-                  value={segment.translation}
-                  onChange={(e: any) => {
-                    const newSegments = [...(sentence.segments || [])];
-                    newSegments[idx] = { ...newSegments[idx], translation: e.target.value };
-                    onUpdate(sentence.id, { segments: newSegments });
-                  }}
-                  className="h-5 text-[10px] text-center px-1 text-muted-foreground/70 bg-transparent border-transparent shadow-none hover:border-input focus-visible:border-input focus-visible:ring-1 focus-visible:bg-background"
-                  placeholder="Nghĩa"
-                />
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-4 w-4 absolute -top-2 -right-2 opacity-0 group-hover/segment:opacity-100 bg-destructive text-destructive-foreground rounded-full shadow-sm hover:bg-destructive/90 z-10"
-                  onClick={() => {
-                    const newSegments = sentence.segments?.filter((_, i) => i !== idx) || [];
-                    const newText = newSegments.map(s => s.text).join('');
-                    onUpdate(sentence.id, { segments: newSegments, text: newText });
-                  }}
-                >
-                  <IconTrash className="h-2 w-2" />
-                </Button>
-              </div>
-            ))}
 
             <Button
-              variant="outline"
-              size="sm"
-              className="h-full min-h-[60px] border-dashed"
-              onClick={() => {
-                const newSegments = [...(sentence.segments || []), { text: '', pinyin: '', translation: '' }];
-                onUpdate(sentence.id, { segments: newSegments });
-              }}
+              variant="ghost"
+              size="icon-sm"
+              className="opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={() => onEdit(sentence)}
             >
-              <IconPlus className="h-4 w-4" />
+              <IconPencil className="h-4 w-4" />
             </Button>
+          </div>
+
+          {/* Segment Display (Read Only) */}
+          <div
+            className="flex flex-wrap gap-2 items-start bg-muted/30 p-2 rounded-lg border min-h-[60px] cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => onEdit(sentence)}
+          >
+            {sentence.segments?.map((segment, idx) => {
+              const isSegmentActive = isActive && activeSegmentIndex === idx;
+              return (
+                <div
+                  key={idx}
+                  className={cn(
+                    "relative flex flex-col items-center gap-0.5 p-1 px-2 rounded transition-all duration-200",
+                    isSegmentActive ? "bg-yellow-400/30 scale-105 shadow-sm ring-1 ring-yellow-400/50 fill-mode-forwards" : "hover:bg-background"
+                  )}
+                >
+                  {/* Pinyin */}
+                  <span className="text-xs text-muted-foreground font-mono">{segment.pinyin || '\u00A0'}</span>
+
+                  {/* Text */}
+                  <span className={cn("text-lg font-medium", isSegmentActive && "text-primary font-bold")}>
+                    {segment.text}
+                  </span>
+                </div>
+              )
+            })}
+            {(sentence.segments?.length === 0 || !sentence.segments) && (
+              <span className="text-muted-foreground italic text-sm self-center px-2">Chưa có nội dung. Nhấn để chỉnh sửa.</span>
+            )}
           </div>
         </div>
 
@@ -319,9 +283,14 @@ export default function ConversationEditorPage() {
   const [participants, setParticipants] = useState<ConversationParticipant[]>([]);
   const [sentences, setSentences] = useState<DialogueSentence[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
+  const [editingSentence, setEditingSentence] = useState<DialogueSentence | null>(null);
   const [isGenerateDialogOpen, setIsGenerateDialogOpen] = useState(false);
   const [isGenerateVideoOpen, setIsGenerateVideoOpen] = useState(false);
   const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+
+  const [currentAudioTime, setCurrentAudioTime] = useState(0);
+  const [audioSpeed, setAudioSpeed] = useState(1.0);
+  const [isSpeedPopoverOpen, setIsSpeedPopoverOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -364,10 +333,11 @@ export default function ConversationEditorPage() {
   });
 
   const generateMutation = useMutation({
-    mutationFn: () => generateAudio(conversationId),
+    mutationFn: (vars: { speed: number }) => generateAudio(conversationId, vars.speed),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['conversation', conversationId] });
       toast.success('Tạo âm thanh thành công!');
+      setIsSpeedPopoverOpen(false);
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -378,12 +348,12 @@ export default function ConversationEditorPage() {
     updateMutation.mutate({ participants, sentences });
   };
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (speed: number = 1.0) => {
     // Save first, then generate
     if (hasChanges) {
       await updateMutation.mutateAsync({ participants, sentences });
     }
-    generateMutation.mutate();
+    generateMutation.mutate({ speed });
   };
 
   const handleDownload = async () => {
@@ -396,18 +366,7 @@ export default function ConversationEditorPage() {
   };
 
   const handleDownloadResource = async (key: string, name: string) => {
-    // We need a way to get signed url for any key.
-    // The existing downloadAudio uses /api/conversations/[id]/download which redirects to audioUrl
-    // We might need a generic download endpoint or just use the same pattern.
-    // For now, let's create a generic helper or just assume the server exposes a way.
-    // Actually the user wants "allow downloading those resources".
-    // I will add specific endpoints or just use the view_file tool to see how downloadAudio works.
-    // fetch(`/api/conversations/${id}/download?type=video`) etc.
-    // But for now, let's just assume I can't easily add that without backend change.
-    // Wait, I can just use a new function that calls a new API route or modifies the existing one.
-    // For simplicity, I'll pass - I will implement the UI logic later correctly.
-    // Just putting placeholders for now.
-    // Update: I'll use a direct link logic handled by a new helper I'll write in a sec.
+    // Placeholder
   };
 
   const handleVideoSuccess = () => {
@@ -478,9 +437,10 @@ export default function ConversationEditorPage() {
   }
 
   const canGenerate = sentences.length > 0 && participants.every(p => p.voiceId) && sentences.every(s => s.text.trim());
+  const showPlayer = conversation?.audioUrl && conversation?.alignment;
 
   return (
-    <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6">
+    <div className="flex flex-1 flex-col gap-6 p-4 lg:p-6 pb-48 relative min-h-screen">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -557,19 +517,52 @@ export default function ConversationEditorPage() {
               <span className="hidden sm:inline">Tạo Video</span>
             </Button>
           )}
-          <Button size="sm" onClick={handleGenerate} disabled={!canGenerate || generateMutation.isPending}>
-            {generateMutation.isPending ? (
-              <>
-                <IconLoader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                <span className="hidden sm:inline">Đang tạo...</span>
-              </>
-            ) : (
-              <>
-                <IconSparkles className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Tạo âm thanh</span>
-              </>
-            )}
-          </Button>
+
+          <Popover open={isSpeedPopoverOpen} onOpenChange={setIsSpeedPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button size="sm" disabled={!canGenerate || generateMutation.isPending}>
+                {generateMutation.isPending ? (
+                  <>
+                    <IconLoader2 className="h-4 w-4 sm:mr-2 animate-spin" />
+                    <span className="hidden sm:inline">Đang tạo...</span>
+                  </>
+                ) : (
+                  <>
+                    <IconSparkles className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Tạo âm thanh</span>
+                  </>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="grid gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium leading-none">Cài đặt âm thanh</h4>
+                  <p className="text-sm text-muted-foreground">Điều chỉnh tốc độ giọng đọc.</p>
+                </div>
+                <div className="grid gap-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="speed">Tốc độ</Label>
+                    <span className="w-12 rounded-md border border-transparent px-2 py-0.5 text-right text-sm text-muted-foreground hover:border-border">
+                      {audioSpeed}x
+                    </span>
+                  </div>
+                  <Slider
+                    id="speed"
+                    max={1.5}
+                    min={0.5}
+                    step={0.05}
+                    value={[audioSpeed]}
+                    onValueChange={(value) => setAudioSpeed(value[0])}
+                    className="[&_[role=slider]]:h-4 [&_[role=slider]]:w-4"
+                  />
+                </div>
+                <Button onClick={() => handleGenerate(audioSpeed)} disabled={generateMutation.isPending} className="w-full">
+                  {generateMutation.isPending ? 'Đang xử lý...' : 'Bắt đầu tạo'}
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
@@ -704,17 +697,31 @@ export default function ConversationEditorPage() {
               <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={sentences.map(s => s.id)} strategy={verticalListSortingStrategy}>
                   <div className="space-y-3">
-                    {sentences.map(sentence => (
-                      <SortableSentence
-                        key={sentence.id}
-                        sentence={sentence}
-                        participants={participants}
-                        tones={voicesData?.tones || []}
-                        emotions={voicesData?.emotions || []}
-                        onUpdate={updateSentence}
-                        onDelete={deleteSentence}
-                      />
-                    ))}
+                    {sentences.map(sentence => {
+                      const alignmentSent = conversation?.alignment?.segments.find(s => s.sentenceId === sentence.id);
+                      let isActive = false;
+                      let activeSegmentIndex = -1;
+
+                      if (alignmentSent && currentAudioTime >= alignmentSent.startTime && currentAudioTime <= alignmentSent.endTime) {
+                        isActive = true;
+                        activeSegmentIndex = alignmentSent.words.findIndex(w => currentAudioTime >= w.start && currentAudioTime <= w.end);
+                      }
+
+                      return (
+                        <SortableSentence
+                          key={sentence.id}
+                          sentence={sentence}
+                          participants={participants}
+                          tones={voicesData?.tones || []}
+                          emotions={voicesData?.emotions || []}
+                          onUpdate={updateSentence}
+                          onDelete={deleteSentence}
+                          onEdit={setEditingSentence}
+                          isActive={isActive}
+                          activeSegmentIndex={activeSegmentIndex}
+                        />
+                      );
+                    })}
                   </div>
                 </SortableContext>
               </DndContext>
@@ -722,6 +729,19 @@ export default function ConversationEditorPage() {
           </CardContent>
         </Card>
       </div>
+
+      {showPlayer && (
+        <div className="sticky bottom-0 -mx-4 lg:-mx-6 p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t z-10 flex justify-center mt-auto">
+          <div className="w-full max-w-4xl">
+            <ConversationPlayer
+              audioUrl={conversation.audioUrl}
+              onTimeUpdate={setCurrentAudioTime}
+              duration={conversation.alignment?.totalDuration}
+            />
+          </div>
+        </div>
+      )}
+
       <GenerateDialogueDialog
         open={isGenerateDialogOpen}
         onOpenChange={setIsGenerateDialogOpen}
@@ -739,6 +759,12 @@ export default function ConversationEditorPage() {
         onOpenChange={setIsImportDialogOpen}
         participants={participants}
         onImport={handleImportDialogue}
+      />
+      <SentenceEditorDialog
+        open={!!editingSentence}
+        onOpenChange={(open) => !open && setEditingSentence(null)}
+        sentence={editingSentence}
+        onSave={updateSentence}
       />
     </div>
   );

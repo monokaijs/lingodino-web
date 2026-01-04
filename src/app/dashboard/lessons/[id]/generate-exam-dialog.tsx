@@ -34,6 +34,7 @@ export function GenerateExamDialog({ open, onOpenChange, lessonId, lessonName }:
     matching: 2,
     trueFalse: 0,
     shortAnswer: 0,
+    speak: 0,
   });
 
   // Total questions
@@ -144,6 +145,15 @@ export function GenerateExamDialog({ open, onOpenChange, lessonId, lessonName }:
                   min={0}
                   value={counts.shortAnswer}
                   onChange={e => setCounts(c => ({ ...c, shortAnswer: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label className="text-xs text-muted-foreground">Nói</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={counts.speak}
+                  onChange={e => setCounts(c => ({ ...c, speak: parseInt(e.target.value) || 0 }))}
                 />
               </div>
             </div>

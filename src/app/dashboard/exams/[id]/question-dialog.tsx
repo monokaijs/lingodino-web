@@ -58,6 +58,7 @@ export const questionTypeLabels: Record<ExamQuestionType, string> = {
   [ExamQuestionType.TrueFalse]: 'Đúng / Sai',
   [ExamQuestionType.ShortAnswer]: 'Trả lời ngắn',
   [ExamQuestionType.LongAnswer]: 'Trả lời dài',
+  [ExamQuestionType.Speak]: 'Nói',
   [ExamQuestionType.ListenAndRepeat]: 'Nghe và Lặp lại',
   [ExamQuestionType.ListenAndAnswer]: 'Nghe và Trả lời',
   [ExamQuestionType.ListenAndWrite]: 'Nghe và Viết',
