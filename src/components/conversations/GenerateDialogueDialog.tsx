@@ -85,13 +85,12 @@ export function GenerateDialogueDialog({ open, onOpenChange, participants, onGen
       const newSentences: DialogueSentence[] = generatedData.sentences.map((s, index) => ({
         id: crypto.randomUUID(),
         participantRole: s.participantRole,
-        text: s.text,
+        // Remove potential speaker prefix like "Speaker 1: " or "Wang: " if AI hallucinated it
+        text: s.text.replace(/^([^:：]+)[:：]\s*/, ''),
+        segments: s.segments,
         tone: s.tone || '',
         emotion: s.emotion || '',
         order: index,
-        // Optional fields if you have them in your DB schema but not strictly required by UI yet
-        // pinyin: s.pinyin,
-        // translation: s.translation
       }));
 
       onGenerate(newSentences);

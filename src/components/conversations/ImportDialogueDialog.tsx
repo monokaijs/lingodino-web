@@ -163,6 +163,11 @@ export function ImportDialogueDialog({ open, onOpenChange, participants, onImpor
             id: crypto.randomUUID(),
             participantRole: line.participantRole,
             text: line.text,
+            segments: [{
+                text: line.text,
+                pinyin: '',
+                translation: ''
+            }],
             tone: '',
             emotion: '',
             order: index,

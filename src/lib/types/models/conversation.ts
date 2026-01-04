@@ -16,9 +16,16 @@ export interface DialogueSentence {
   id: string;
   participantRole: ParticipantRole;
   text: string;
+  segments?: SentenceSegment[];
   tone?: string; // e.g., "cheerfully", "sadly", "angrily"
   emotion?: string; // e.g., "happy", "sad", "excited"
   order: number;
+}
+
+export interface SentenceSegment {
+  text: string;
+  pinyin: string;
+  translation: string;
 }
 
 export enum ConversationStatus {

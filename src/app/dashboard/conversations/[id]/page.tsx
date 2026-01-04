@@ -35,6 +35,7 @@ import {
   ParticipantRole,
   ConversationStatus,
   ElevenLabsVoice,
+  SentenceSegment,
 } from '@/lib/types/models/conversation';
 import { GenerateDialogueDialog } from '@/components/conversations/GenerateDialogueDialog';
 import { GenerateVideoDialog } from '@/components/conversations/GenerateVideoDialog';
@@ -112,6 +113,23 @@ async function downloadAudio(id: string): Promise<string> {
   return json.data.url;
 }
 
+// Helper for auto-resizing input
+const AutoResizeInput = ({ value, className, placeholder, ...props }: any) => {
+  return (
+    <div className="inline-grid items-center justify-items-center relative">
+      <span className={cn("invisible col-start-1 row-start-1 whitespace-pre px-2 pointer-events-none min-w-[2ch]", className)}>
+        {value || placeholder || ''}
+      </span>
+      <Input
+        value={value}
+        placeholder={placeholder}
+        className={cn("col-start-1 row-start-1 w-full min-w-0 text-center px-1 resize-none overflow-hidden", className)}
+        {...props}
+      />
+    </div>
+  );
+};
+
 interface SortableSentenceProps {
   sentence: DialogueSentence;
   participants: ConversationParticipant[];
@@ -165,13 +183,75 @@ function SortableSentence({ sentence, participants, tones, emotions, onUpdate, o
               {participant?.name || sentence.participantRole}
             </Badge>
           </div>
-          <Textarea
-            value={sentence.text}
-            onChange={e => onUpdate(sentence.id, { text: e.target.value })}
-            placeholder="Nhập nội dung hội thoại..."
-            className="min-h-[60px] resize-none"
-            rows={2}
-          />
+
+          {/* Segment Editor */}
+          <div className="flex flex-wrap gap-2 items-start bg-muted/30 p-2 rounded-lg border min-h-[80px]">
+            {sentence.segments?.map((segment, idx) => (
+              <div key={idx} className="group/segment relative flex flex-col items-center gap-0.5 min-w-fit p-1 rounded hover:bg-muted/50 transition-colors">
+                {/* Pinyin (Top) - Only show border on hover/focus */}
+                <AutoResizeInput
+                  value={segment.pinyin}
+                  onChange={(e: any) => {
+                    const newSegments = [...(sentence.segments || [])];
+                    newSegments[idx] = { ...newSegments[idx], pinyin: e.target.value };
+                    onUpdate(sentence.id, { segments: newSegments });
+                  }}
+                  className="h-6 text-xs text-center px-1 text-muted-foreground font-mono bg-transparent border-transparent shadow-none hover:border-input focus-visible:border-input focus-visible:ring-1 focus-visible:bg-background"
+                  placeholder="Pinyin"
+                />
+
+                {/* Text (Middle) - Main */}
+                <AutoResizeInput
+                  value={segment.text}
+                  onChange={(e: any) => {
+                    const newSegments = [...(sentence.segments || [])];
+                    newSegments[idx] = { ...newSegments[idx], text: e.target.value };
+                    const newText = newSegments.map(s => s.text).join('');
+                    onUpdate(sentence.id, { segments: newSegments, text: newText });
+                  }}
+                  className="h-8 text-lg font-medium text-center px-1 bg-transparent border-transparent shadow-none hover:border-input focus-visible:border-input focus-visible:ring-1 focus-visible:bg-background"
+                  placeholder="Từ"
+                />
+
+                {/* Translation (Bottom) */}
+                <AutoResizeInput
+                  value={segment.translation}
+                  onChange={(e: any) => {
+                    const newSegments = [...(sentence.segments || [])];
+                    newSegments[idx] = { ...newSegments[idx], translation: e.target.value };
+                    onUpdate(sentence.id, { segments: newSegments });
+                  }}
+                  className="h-5 text-[10px] text-center px-1 text-muted-foreground/70 bg-transparent border-transparent shadow-none hover:border-input focus-visible:border-input focus-visible:ring-1 focus-visible:bg-background"
+                  placeholder="Nghĩa"
+                />
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-4 w-4 absolute -top-2 -right-2 opacity-0 group-hover/segment:opacity-100 bg-destructive text-destructive-foreground rounded-full shadow-sm hover:bg-destructive/90 z-10"
+                  onClick={() => {
+                    const newSegments = sentence.segments?.filter((_, i) => i !== idx) || [];
+                    const newText = newSegments.map(s => s.text).join('');
+                    onUpdate(sentence.id, { segments: newSegments, text: newText });
+                  }}
+                >
+                  <IconTrash className="h-2 w-2" />
+                </Button>
+              </div>
+            ))}
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-full min-h-[60px] border-dashed"
+              onClick={() => {
+                const newSegments = [...(sentence.segments || []), { text: '', pinyin: '', translation: '' }];
+                onUpdate(sentence.id, { segments: newSegments });
+              }}
+            >
+              <IconPlus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         {/* Tone & Emotion */}
@@ -263,7 +343,11 @@ export default function ConversationEditorPage() {
   useEffect(() => {
     if (conversation) {
       setParticipants(conversation.participants || []);
-      setSentences(conversation.sentences || []);
+      // Migrate existing sentences to have segments if missing
+      setSentences((conversation.sentences || []).map(s => ({
+        ...s,
+        segments: (s.segments && s.segments.length > 0) ? s.segments : (s.text ? [{ text: s.text, pinyin: '', translation: '' }] : [{ text: '', pinyin: '', translation: '' }])
+      })));
     }
   }, [conversation]);
 
@@ -340,6 +424,7 @@ export default function ConversationEditorPage() {
       id: crypto.randomUUID(),
       participantRole: role,
       text: '',
+      segments: [{ text: '', pinyin: '', translation: '' }],
       tone: '',
       emotion: '',
       order: sentences.length,

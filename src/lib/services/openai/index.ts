@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
-import {DialogueSentence, ConversationParticipant, ParticipantRole} from '@/lib/types/models/conversation';
-import {z} from 'zod';
+import { DialogueSentence, ConversationParticipant, ParticipantRole } from '@/lib/types/models/conversation';
+import { z } from 'zod';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -8,13 +8,18 @@ const openai = new OpenAI({
 
 export type LearningLevel = 'HSK 1' | 'HSK 2' | 'HSK 3' | 'HSK 4' | 'HSK 5' | 'HSK 6' | 'HSK 7 - 9';
 
+export const GeneratedSegmentSchema = z.object({
+  text: z.string().describe('The word or phrase segment'),
+  pinyin: z.string().describe('Numeric pinyin for the segment'),
+  translation: z.string().describe('Vietnamese translation for the segment'),
+});
+
 export const GeneratedSentenceSchema = z.object({
-  text: z.string().describe('The Chinese text of the sentence'),
+  text: z.string().describe('The full Chinese text of the sentence'),
+  segments: z.array(GeneratedSegmentSchema).describe('The sentence segmented into words/phrases'),
   participantRole: z.enum([ParticipantRole.Speaker1, ParticipantRole.Speaker2]),
   tone: z.string().optional().describe('Tone instruction for TTS (e.g., cheerfully, sadly)'),
   emotion: z.string().optional().describe('Emotion label (e.g., happy, sad, angry)'),
-  pinyin: z.string().optional().describe('Pinyin for the sentence'),
-  translation: z.string().optional().describe('English translation'),
 });
 
 export const GeneratedDialogueSchema = z.object({
@@ -51,12 +56,27 @@ Target Level: ${level}
 Vocabulary and grammar must be strictly suitable for this HSK level.
 Verify that the content is natural and educational.
 CRITICAL: The conversation must be complete and self-contained within the requested number of sentences. It must have a logical beginning, middle, and end. Do not leave the conversation hanging or incomplete.
+IMPORTANT: The "text" field must ONLY contain the spoken dialogue. Do NOT include the speaker's name or role (e.g., "Wang: Hello" -> "Hello").
+
+Break down each sentence into segments (words or phrases).
+IMPORTANT: Punctuation marks (.,;?! etc.) must be attached to the preceding segment. Do NOT create separate segments for punctuation.
+For each segment provide:
+- text: The Chinese characters.
+- pinyin: The numeric pinyin (e.g., "ni3 hao3").
+- translation: The Vietnamese translation of the segment.
 
 Output strictly valid JSON matching this structure:
 {
   "sentences": [
     {
-      "text": "Chinese text",
+      "text": "Full Chinese text",
+      "segments": [
+        {
+          "text": "Word",
+          "pinyin": "Pin1yin1",
+          "translation": "Vietnamese meaning"
+        }
+      ],
       "participantRole": "speaker1" or "speaker2",
       "tone": "tone from list",
       "emotion": "emotion from list"
@@ -80,10 +100,10 @@ AVAILABLE TONES: cheerfully, sadly, angrily, excitedly, calmly, nervously, sarca
   const completion = await openai.chat.completions.create({
     model: model || 'gpt-4o-mini',
     messages: [
-      {role: 'system', content: systemPrompt},
-      {role: 'user', content: userPrompt},
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
     ],
-    response_format: {type: 'json_object'},
+    response_format: { type: 'json_object' },
   });
 
   const content = completion.choices[0].message.content;
